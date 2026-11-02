@@ -78,6 +78,25 @@ Mở trang Mixer: nút **Mixer** trên thanh menu, hoặc phím **6**.
 
 ## 4. Chạy trên MacBook
 
+### Cách A: tải bản build sẵn (không cần cài Node)
+
+1. Vào **GitHub → tab Actions → "Mixer macOS build"** → mở lần chạy mới nhất có dấu ✅.
+2. Kéo xuống mục **Artifacts** → tải `FreeShow-Mixer-macOS-arm64` (máy M1/M2/M3/M4) hoặc `-x64` (máy Intel).
+3. Giải nén → mở file `.dmg` → kéo FreeShow vào Applications.
+4. Bản này **chưa notarize** nên macOS sẽ chặn ở lần mở đầu. Mở Terminal và chạy:
+
+```bash
+xattr -cr /Applications/FreeShow.app
+```
+
+Sau đó mở lại app. Nếu vẫn bị chặn: **System Settings → Privacy & Security → Open Anyway**.
+
+> ⚠️ Bản Mixer dùng chung thư mục dữ liệu với FreeShow gốc (`appId: app.freeshow`). Nếu máy đang dùng FreeShow cho buổi lễ hoặc sự kiện thật, hãy sao lưu dữ liệu trước, hoặc test trên máy khác.
+
+> ⚠️ Workflow `release.yml` có sẵn của FreeShow sẽ tự chạy khi push lên nhánh `main` của fork. Chỉ merge Mixer vào `main` sau khi đã tắt workflow đó (Actions → Release → Disable workflow).
+
+### Cách B: chạy từ mã nguồn
+
 Yêu cầu: macOS 12 trở lên, Node.js ≥ 22.12, Xcode Command Line Tools.
 
 ```bash
