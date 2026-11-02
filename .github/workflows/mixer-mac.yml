@@ -71,7 +71,9 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: |
           set -o pipefail
-          npx electron-builder --config config/building/electron-builder.local.yaml --mac dmg --${{ matrix.arch }} --publish never -c.mac.identity=- -c.mac.notarize=false 2>&1 | tee -a build.log
+          # test builds have no Apple Developer account: skip the notarize.js afterSign hook
+          printf 'extends: config/building/electron-builder.local.yaml\nafterSign: null\nmac:\n    identity: "-"\n    notarize: false\n' > electron-builder.ci.yaml
+          npx electron-builder --config electron-builder.ci.yaml --mac dmg --${{ matrix.arch }} --publish never 2>&1 | tee -a build.log
           ls -la dist
 
       - name: Upload .dmg (artifact)
