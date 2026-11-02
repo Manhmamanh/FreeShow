@@ -111,6 +111,7 @@
         <TopButton id="show" />
         <TopButton id="edit" disabled={editDisabled} />
         <TopButton id="stage" />
+        <TopButton id="mixer" />
     </span>
     <span style="width: var(--navigation-width);justify-content: flex-end;">
         <TopButton id="draw" red={$drawTool === "fill" || ($drawTool === "zoom" && $drawSettings.zoom?.size !== 100) || !!($drawTool === "paint" && $paintCache?.length)} hideLabel />

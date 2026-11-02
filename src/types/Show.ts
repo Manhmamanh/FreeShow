@@ -618,6 +618,7 @@ export interface OutBackground {
     folderPath?: string // project media folder
 
     ignoreLayer?: boolean // foreground background type
+    mixerTransition?: Transition // set by the Mixer page: overrides the media transition for this background change
 }
 
 export interface OutSlide {

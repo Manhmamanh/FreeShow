@@ -6,6 +6,7 @@
     import { runAction } from "../../actions/actions"
     import AudioMeter from "../../drawer/audio/AudioMeter.svelte"
     import { getSlideText } from "../../edit/scripts/textStyle"
+    import { isMixerKey } from "../../mixer/mixer"
     import Icon from "../../helpers/Icon.svelte"
     import T from "../../helpers/T.svelte"
     import { getActiveOutputs, getFirstOutputIdWithBackground, isOutCleared, outputSlideHasContent, setOutput } from "../../helpers/output"
@@ -41,6 +42,8 @@
     function keydown(e: KeyboardEvent) {
         if ($contextActive) return
         if ($guideActive || $activePopup === "assign_shortcut") return
+        // the mixer page uses these keys for switching (arrow/page keys still change slides)
+        if ($activePage === "mixer" && isMixerKey(e)) return
 
         const ctrlShortcut = e.ctrlKey || e.metaKey ? previewCtrlShortcuts[getNormalizedKey(e)] : null
         if (ctrlShortcut) {

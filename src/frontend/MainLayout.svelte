@@ -47,6 +47,8 @@
                     <Navigation />
                 {:else if page === "stage"}
                     <StageLayouts />
+                {:else if page === "mixer"}
+                    <LazyLoad component={() => import("./components/mixer/MixerInputs.svelte")} show={page === "mixer"} />
                 {:else if page === "draw"}
                     <DrawTabs />
                 {:else if page === "settings"}
@@ -70,6 +72,8 @@
                 <LazyLoad component={() => import("./components/settings/Settings.svelte")} show={page === "settings"} />
             {:else if page === "stage"}
                 <LazyLoad component={() => import("./components/stage/StageLayout.svelte")} show={page === "stage"} />
+            {:else if page === "mixer"}
+                <LazyLoad component={() => import("./components/mixer/Mixer.svelte")} show={page === "mixer"} />
             {/if}
         </div>
 
@@ -102,6 +106,8 @@
                     <LazyLoad component={() => import("./components/stage/StageTools.svelte")} show={page === "stage" && !!$activeStage.id} />
                 {:else if page === "settings"}
                     <LazyLoad component={() => import("./components/settings/SettingsTools.svelte")} show={page === "settings"} />
+                {:else if page === "mixer"}
+                    <LazyLoad component={() => import("./components/mixer/MixerTools.svelte")} show={page === "mixer"} />
                 {/if}
             </div>
         </Resizeable>

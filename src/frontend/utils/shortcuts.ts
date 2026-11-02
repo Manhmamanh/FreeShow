@@ -1,4 +1,5 @@
 import { get } from "svelte/store"
+import { mixerKeydown } from "../components/mixer/mixer"
 import { OUTPUT } from "../../types/Channels"
 import { Main } from "../../types/IPC/Main"
 import type { ShowType } from "../../types/Show"
@@ -32,7 +33,7 @@ import { send } from "./request"
 import { save } from "./save"
 import { isTypingTarget } from "./shortcutsHelper"
 
-const menus: TopViews[] = ["show", "edit", "stage", "draw", "settings"]
+const menus: TopViews[] = ["show", "edit", "stage", "draw", "settings", "mixer"]
 
 const ctrlKeys = {
     a: () => selectAll(),
@@ -252,6 +253,12 @@ export function keydown(e: KeyboardEvent) {
     }
 
     if (isTypingTarget(document.activeElement) && e.key !== "Escape") return
+
+    // mixer page owns number keys (inputs), Space/Enter (auto), C (cut) & B (fade to black)
+    if (get(activePage) === "mixer" && !get(activePopup) && mixerKeydown(e)) {
+        e.preventDefault()
+        return
+    }
 
     // change tab with number keys
     const menu = menus[Number(e.key) - 1]
