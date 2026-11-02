@@ -1,12 +1,23 @@
 name: Mixer macOS build
 
-# Builds an unsigned (ad-hoc) macOS .dmg of the Mixer branch for testing.
-# Download it from the run's "Artifacts" section. Nothing is published as a release.
+# Builds an ad-hoc signed (not notarized) macOS .dmg of the Mixer branch for testing.
+# The .dmg files are attached to the "mixer-latest" pre-release (Releases page) and to the run's Artifacts.
+# On failure the tail of the log is written as error annotations, so it can be read from the check run.
 on:
   push:
     branches:
       - "feature/mixer-*"
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mixer-mac-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RELEASE_TAG: mixer-latest
 
 jobs:
   mac:
@@ -36,23 +47,59 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          set -o pipefail
+          npm ci 2>&1 | tee -a build.log
 
       - name: Install dmg-license
-        run: npm i --no-save dmg-license
+        run: |
+          set -o pipefail
+          npm i --no-save dmg-license 2>&1 | tee -a build.log
 
       - name: Build app
-        run: npm run build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee -a build.log
 
       - name: Package .dmg (ad-hoc signed, not notarized)
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
-        run: npx electron-builder --config config/building/electron-builder.local.yaml --mac dmg --${{ matrix.arch }} --publish never -c.mac.identity=- -c.mac.notarize=false
+        run: |
+          set -o pipefail
+          npx electron-builder --config config/building/electron-builder.local.yaml --mac dmg --${{ matrix.arch }} --publish never -c.mac.identity=- -c.mac.notarize=false 2>&1 | tee -a build.log
+          ls -la dist
 
-      - name: Upload .dmg
+      - name: Upload .dmg (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: FreeShow-Mixer-macOS-${{ matrix.arch }}
           path: dist/*.dmg
           if-no-files-found: error
           retention-days: 14
+
+      - name: Attach .dmg to the mixer-latest pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --prerelease --target "$GITHUB_SHA" \
+              --title "FreeShow Mixer (test build)" \
+              --notes "Bản build thử của nhánh Mixer, chưa notarize. Sau khi cài, chạy: xattr -cr /Applications/FreeShow.app" || true
+          fi
+          for f in dist/*.dmg; do
+            target="FreeShow-Mixer-${{ matrix.arch }}.dmg"
+            cp "$f" "$target"
+            gh release upload "$RELEASE_TAG" "$target" --clobber
+          done
+
+      - name: Report log tail as annotations
+        if: failure()
+        run: |
+          # GitHub keeps only ~10 annotations per step, so send chunks of 15 lines each (newlines encoded as %0A)
+          touch build.log
+          tail -n 120 build.log | grep -v '^\s*$' | tail -n 90 | tr -d '\r' | cut -c1-300 | sed 's/%/%25/g' > tail.log
+          split -l 15 tail.log chunk_
+          for c in chunk_*; do
+            msg=$(awk 'BEGIN{ORS="%0A"} {print}' "$c")
+            echo "::error title=Build log (${{ matrix.arch }}) ${c#chunk_}::$msg"
+          done
