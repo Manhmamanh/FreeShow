@@ -83,7 +83,7 @@
             <li><kbd>1</kbd>–<kbd>9</kbd> {translateText("mixer.key_preview", $dictionary)}</li>
             <li><kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>9</kbd> {translateText("mixer.key_quickplay", $dictionary)}</li>
             <li><kbd>Space</kbd> / <kbd>Enter</kbd> AUTO</li>
-            <li><kbd>C</kbd> CUT · <kbd>B</kbd> FTB</li>
+            <li><kbd>C</kbd> CUT · <kbd>B</kbd> FTB · <kbd>R</kbd> REPLAY</li>
             <li><kbd>→</kbd> / <kbd>←</kbd> {translateText("mixer.key_slides", $dictionary)}</li>
         </ul>
     </div>

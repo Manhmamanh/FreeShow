@@ -36,6 +36,7 @@ import { processAudioData, timecodeStart, timecodeStop, updateTimecodeValue } fr
 import { apiReturnData, emitOSC, startWebSocketAndRest, stopApiListener } from "../utils/api"
 import { closeMain } from "../utils/close"
 import { addToMediaFolder, bundleMediaFiles, createFolder, getDataFolderPath, getDataFolderRoot, getFileInfo, getMediaCodec, getMediaSyncFolderPath, getMediaTracks, getPaths, getSimularPaths, loadFile, loadShowsAsync, locateMediaFile, openInSystem, readExifData, readFile, readFolder, readFolderContent, selectFiles, selectFilesDialog, selectFolder, setMediaSyncFolderPath, writeFile } from "../utils/files"
+import { mixerIsoChunk, mixerSaveReplay } from "../mixer/mixerFiles"
 import { listGraphicsDevices } from "../utils/gpu"
 import { getMachineId } from "../utils/helpers"
 import { LyricSearch } from "../utils/LyricSearch"
@@ -166,6 +167,8 @@ export const mainResponses: MainResponses = {
     // FILES
     [Main.RESTORE]: (data) => restoreFiles(data),
     [Main.RECORDER]: (data) => saveRecording(data),
+    [Main.MIXER_ISO_CHUNK]: (data) => mixerIsoChunk(data),
+    [Main.MIXER_SAVE_REPLAY]: (data) => mixerSaveReplay(data),
     [Main.SYSTEM_OPEN]: (data) => openInSystem(data),
     [Main.LOCATE_MEDIA_FILE]: (data) => locateMediaFile(data),
     [Main.GET_MEDIA_FOLDER_PATH]: () => getMediaSyncFolderPath(),

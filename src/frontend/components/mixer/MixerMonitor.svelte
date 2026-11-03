@@ -1,20 +1,25 @@
 <script lang="ts">
-    // Preview monitor: renders the real output (slides + overlays) with the preview input as background,
-    // so the operator sees exactly what "Auto"/"Cut" will put on air.
+    // Preview monitor: renders the real output (slides + overlays + active PiPs) with the preview input as
+    // the mixer program, so the operator sees exactly what "Auto"/"Cut" will put on air.
+    import type { MixerInput } from "../../../types/Mixer"
     import type { OutData } from "../../../types/Output"
-    import type { OutBackground } from "../../../types/Show"
     import { outputs, styles } from "../../stores"
     import { clone } from "../helpers/array"
     import { getResolution } from "../helpers/output"
     import Output from "../output/Output.svelte"
     import { getStyleResolution } from "../slide/getStyleResolution"
+    import { emptyOutMixer, mixer } from "./mixer"
 
     export let outputId: string
-    export let background: OutBackground | null
+    export let input: MixerInput | null
 
     $: resolution = getResolution(null, [$outputs, $styles], false, outputId)
     $: currentOut = $outputs[outputId]?.out || {}
-    $: outOverride = { ...clone(currentOut), background: background ? { ...background, mixerTransition: { type: "none", duration: 0, easing: "linear" } } : null } as OutData
+    $: pips = $mixer.pips
+        .filter((p) => p.enabled)
+        .map((p) => ({ ...p, input: $mixer.inputs.find((i) => i.id === p.inputId) as MixerInput }))
+        .filter((p) => p.input)
+    $: outOverride = { ...clone(currentOut), mixer: { ...emptyOutMixer(), program: input, pips, transition: $mixer.transition } } as OutData
 
     let width = 0
     let height = 0

@@ -12,11 +12,13 @@
     import Icon from "../helpers/Icon.svelte"
     import MaterialButton from "../inputs/MaterialButton.svelte"
     import MediaPicker from "../inputs/MediaPicker.svelte"
-    import { addInput, addMediaFiles, MAX_SHORTCUT_INPUTS, mixer, moveInput, removeInput, renameInput, setPreview } from "./mixer"
+    import { addGuest, addInput, addMediaFiles, MAX_SHORTCUT_INPUTS, mixer, moveInput, removeInput, renameInput, setPreview } from "./mixer"
+    import { getAudioInputDevices } from "./mixerAudio"
+    import { inputIcon } from "./MixerTile.svelte"
 
     type Source = { id: string; name: string; group?: string }
 
-    let addType: "" | "camera" | "ndi" | "screen" = ""
+    let addType: "" | "camera" | "ndi" | "screen" | "audio" = ""
     let sources: Source[] = []
     let loading = false
 
@@ -29,6 +31,9 @@
         if (addType === "camera") {
             const cams: CameraData[] = await cameraManager.getCamerasList()
             sources = cams.map((c) => ({ id: c.id, name: c.name, group: c.group }))
+            loading = false
+        } else if (addType === "audio") {
+            sources = await getAudioInputDevices()
             loading = false
         } else if (addType === "screen") {
             sources = ((await requestMain(Main.GET_SCREENS)) || []).map((s) => ({ id: s.id, name: s.name }))
@@ -72,8 +77,6 @@
         node.focus()
         node.select()
     }
-
-    const icons = { camera: "camera", ndi: "ndi", omt: "ndi", screen: "screen", blackmagic: "camera", video: "video", image: "image", media: "media", player: "play" }
 </script>
 
 <div class="panel">
@@ -96,7 +99,7 @@
                 {:else}
                     <button class="name" on:click={() => setPreview(input.id)} on:dblclick={() => (editingId = input.id)} title={translateText("mixer.rename_hint", $dictionary)}>
                         <span class="number">{index < MAX_SHORTCUT_INPUTS ? index + 1 : "-"}</span>
-                        <Icon id={icons[input.type] || "media"} size={0.9} white />
+                        <Icon id={inputIcon(input.type)} size={0.9} white />
                         <span class="text">{input.name}</span>
                     </button>
                 {/if}
@@ -114,6 +117,8 @@
         <MaterialButton icon="camera" isActive={addType === "camera"} on:click={() => openAdd("camera")}>{translateText("mixer.camera", $dictionary)}</MaterialButton>
         <MaterialButton icon="ndi" isActive={addType === "ndi"} on:click={() => openAdd("ndi")}>NDI</MaterialButton>
         <MaterialButton icon="screen" isActive={addType === "screen"} on:click={() => openAdd("screen")}>{translateText("mixer.screen", $dictionary)}</MaterialButton>
+        <MaterialButton icon="microphone" isActive={addType === "audio"} on:click={() => openAdd("audio")}>{translateText("mixer.audio_input", $dictionary)}</MaterialButton>
+        <MaterialButton icon="people" on:click={() => addGuest()}>{translateText("mixer.guest", $dictionary)}</MaterialButton>
         <MediaPicker id="mixer_media" filter={{ name: "Media files", extensions: mediaExtensions }} multiple on:picked={(e) => addMediaFiles(Array.isArray(e.detail) ? e.detail : [e.detail])}>
             <Icon id="media" white />
             <span style="margin-left: 6px;">{translateText("mixer.media_file", $dictionary)}</span>

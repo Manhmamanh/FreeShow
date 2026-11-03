@@ -1,4 +1,5 @@
 import { get } from "svelte/store"
+import { mixerLiveAmount } from "../components/mixer/mixerLive"
 import { CLOUD, CONTROLLER, NDI, OMT, OUTPUT, OUTPUT_STREAM, REMOTE, STAGE } from "../../types/Channels"
 import type { ClientMessage } from "../../types/Socket"
 import { AudioMicrophone } from "../audio/audioMicrophone"
@@ -196,6 +197,10 @@ export const receiveOUTPUTasOUTPUT: any = {
     ALL_OUTPUTS: (a: any) => {
         // used for stage mirror data (hacky fix)
         allOutputs.set(a)
+    },
+    // Mixer page: live T-bar position (kept out of the outputs store so dragging stays light)
+    MIXER_LIVE: (a: { outputId: string; amount: number | null }) => {
+        mixerLiveAmount.update((live) => ({ ...live, [a?.outputId || ""]: a?.amount ?? null }))
     },
     // this window draws a capture's frames instead of rendering the content
     PRESENT: ({ active }: { id: string; active: boolean }) => presenting.set(!!active),

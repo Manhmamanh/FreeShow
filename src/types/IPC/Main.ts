@@ -128,6 +128,8 @@ export enum Main {
     GET_LYRICS = "GET_LYRICS",
     SEARCH_LYRICS = "SEARCH_LYRICS",
     RECORDER = "RECORDER",
+    MIXER_ISO_CHUNK = "MIXER_ISO_CHUNK",
+    MIXER_SAVE_REPLAY = "MIXER_SAVE_REPLAY",
     RESTORE = "RESTORE",
     SYSTEM_OPEN = "SYSTEM_OPEN",
     LOCATE_MEDIA_FILE = "LOCATE_MEDIA_FILE",
@@ -248,6 +250,8 @@ export interface MainSendPayloads {
     [Main.SEARCH_LYRICS]: { artist: string; title: string }
     [Main.RESTORE]?: { path: string }
     [Main.RECORDER]: { blob: ArrayBuffer; name: string; path?: string }
+    [Main.MIXER_ISO_CHUNK]: { id: string; name: string; data: ArrayBuffer; done?: boolean; folder?: string }
+    [Main.MIXER_SAVE_REPLAY]: { name: string; extension: string; segments: ArrayBuffer[]; folder?: string }
     [Main.SYSTEM_OPEN]: string
 
     [Main.LOCATE_MEDIA_FILE]: { filePath: string; folders: string[] }
@@ -309,6 +313,8 @@ export interface MainSendPayloads {
 }
 
 export interface MainReturnPayloads {
+    [Main.MIXER_ISO_CHUNK]: string
+    [Main.MIXER_SAVE_REPLAY]: Promise<{ path: string; error?: string }>
     // DEV
     [Main.IS_DEV]: boolean
     [Main.GET_CACHE_PATH]: string

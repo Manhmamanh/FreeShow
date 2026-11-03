@@ -1,3 +1,4 @@
+import type { OutMixer } from "./Mixer"
 import type { Cropping, Resolution } from "./Settings"
 import type { OutBackground, OutScene, OutSlide, OutTransition } from "./Show"
 
@@ -79,6 +80,7 @@ export interface OutData {
     overlays?: string[]
     transition?: null | OutTransition
     scene?: null | OutScene
+    mixer?: null | OutMixer // Mixer page (vMix style switching), drawn under the background layer
 }
 
 export interface Animation {
