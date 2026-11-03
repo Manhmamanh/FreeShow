@@ -12,7 +12,7 @@
     import Icon from "../helpers/Icon.svelte"
     import MediaPicker from "../inputs/MediaPicker.svelte"
     import { addGuest, addInput, addMediaFiles, mixer } from "./mixer"
-    import { getAudioInputDevices } from "./mixerAudio"
+    import { findLinkedMicrophone, getAudioInputDevices } from "./mixerAudio"
 
     type Kind = "camera" | "ndi" | "screen" | "audio"
     type Source = { id: string; name: string; group?: string }
@@ -61,9 +61,11 @@
     )
     onDestroy(() => destroy(NDI, "MIXER_ADD_NDI"))
 
-    function add(source: Source) {
+    async function add(source: Source) {
         if (!kind) return
-        addInput({ name: source.name, type: kind, sourceId: source.id, cameraGroup: source.group }, false)
+        // a camera brings its own microphone along (sound for AFV, ISO and replay)
+        const audioDeviceId = kind === "camera" ? (await findLinkedMicrophone(source.name, source.group)) || undefined : undefined
+        addInput({ name: source.name, type: kind, sourceId: source.id, cameraGroup: source.group, audioDeviceId }, false)
     }
 
     const t = (key: string) => (key.includes(".") ? translateText(key, $dictionary) : key)

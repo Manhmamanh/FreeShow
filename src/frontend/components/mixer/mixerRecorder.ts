@@ -13,7 +13,8 @@ import { newToast } from "../../utils/common"
 import { translateText } from "../../utils/language"
 import { startOutputRecording, stopMediaRecorder } from "../drawer/live/recorder"
 import { checkFFmpeg } from "../helpers/output"
-import { addInput, getMonitorOutputId, getOutMixer, mixer, mixerHotkeys, setPreview } from "./mixer"
+import { addInput, getMonitorOutputId, getOutMixer, mixer, mixerHotkeys, setPreview, updateInput } from "./mixer"
+import { findLinkedMicrophone } from "./mixerAudio"
 
 const SEGMENT_MS = 2000
 const MAX_REPLAY_SECONDS = 30
@@ -90,6 +91,15 @@ export async function toggleProgramRecording() {
     await startOutputRecording(outputId)
 }
 
+/** cameras added before auto-linking: find their microphone now (and remember it) */
+async function withLinkedMic(input: MixerInput): Promise<MixerInput> {
+    if (input.type !== "camera" || input.audioDeviceId) return input
+    const audioDeviceId = await findLinkedMicrophone(input.name, input.cameraGroup)
+    if (!audioDeviceId) return input
+    updateInput(input.id, { audioDeviceId })
+    return { ...input, audioDeviceId }
+}
+
 // ----- ISO -----
 
 type IsoRecorder = { recorder: MediaRecorder; release: () => void; queue: Promise<void>; id: string; name: string; startedAt: number }
@@ -106,8 +116,9 @@ export async function startIso(inputIds?: string[]) {
     }
 
     const stamp = timestamp()
-    for (const input of inputs) {
-        if (isoRecorders.has(input.id)) continue
+    for (const original of inputs) {
+        if (isoRecorders.has(original.id)) continue
+        const input = await withLinkedMic(original)
         const opened = await openStream(input)
         if (!opened) continue
 
@@ -220,10 +231,11 @@ export async function setReplayBuffer(inputId: string, enabled: boolean) {
     }
 
     if (buffers.has(inputId)) return
-    const input = get(mixer).inputs.find((i) => i.id === inputId)
-    if (!input) return
+    const found = get(mixer).inputs.find((i) => i.id === inputId)
+    if (!found) return
     // replay clips are joined with FFmpeg: offer to download it now instead of failing at the first replay
     await checkFFmpeg()
+    const input = await withLinkedMic(found)
     const opened = await openStream(input)
     if (!opened) return
 

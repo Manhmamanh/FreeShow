@@ -284,6 +284,28 @@ function updateMeters() {
 
 // ----- DEVICES -----
 
+/**
+ * The microphone of the same physical device as a camera (iPhone Continuity Camera, USB webcams, capture cards):
+ * same groupId, or a label that starts with the camera name ("MMM 15Plus" -> "MMM 15Plus Microphone").
+ */
+export async function findLinkedMicrophone(cameraName: string, cameraGroup = ""): Promise<string> {
+    try {
+        const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput" && d.deviceId !== "default" && d.deviceId !== "communications")
+        const byGroup = cameraGroup ? devices.find((d) => d.groupId === cameraGroup) : undefined
+        if (byGroup) return byGroup.deviceId
+
+        const base = cameraName
+            .replace(/\b(camera|webcam|video|cam)\b/gi, "")
+            .replace(/\(.*?\)/g, "")
+            .trim()
+            .toLowerCase()
+        if (base.length < 3) return ""
+        return devices.find((d) => d.label.toLowerCase().includes(base))?.deviceId || ""
+    } catch {
+        return ""
+    }
+}
+
 export async function getAudioInputDevices(): Promise<{ id: string; name: string }[]> {
     try {
         const devices = await navigator.mediaDevices.enumerateDevices()
