@@ -5,6 +5,7 @@ import { sendMain } from "../../../IPC/main"
 import { activeRecording, currentRecordingStream, outputs, special } from "../../../stores"
 import { newToast } from "../../../utils/common"
 import { send } from "../../../utils/request"
+import { BRAND } from "../../../../types/Brand"
 
 let mediaRecorder: MediaRecorder | null = null
 let recordedChunks: Blob[] = []
@@ -91,7 +92,7 @@ export function stopMediaRecorder(): Promise<void> {
 export function getRecordingFileName(label = "", extension = "webm"): string {
     const formattedLabel = label ? `${label.replace(/[\\/:*?"<>|]/g, "_")}_` : ""
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)
-    return `FreeShow_${formattedLabel}${timestamp}.${extension}`
+    return `${BRAND.name}_${formattedLabel}${timestamp}.${extension}`
 }
 
 async function handleStop() {

@@ -121,7 +121,7 @@ export async function startIso(inputIds?: string[]) {
             continue
         }
 
-        const entry: IsoRecorder = { recorder, release: opened.release, queue: Promise.resolve(), id: `${input.id}_${stamp}`, name: `FreeShow_ISO_${cleanName(input.name)}_${stamp}.${format.extension}`, startedAt: Date.now() }
+        const entry: IsoRecorder = { recorder, release: opened.release, queue: Promise.resolve(), id: `${input.id}_${stamp}`, name: `Haidangshow_ISO_${cleanName(input.name)}_${stamp}.${format.extension}`, startedAt: Date.now() }
         const folder = get(special)?.audioRecordingsPath
 
         // chunks are written in order, one after the other

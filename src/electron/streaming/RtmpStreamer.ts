@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from "child_process"
 import type { RtmpDestination, RtmpDestinationState, RtmpStatus } from "../../types/Output"
-import { buildEncoderCommand, buildFileRelayCommand, buildRelayCommand, getProfile, SAMPLE_RATE, type EncoderId } from "./encoderProfiles"
+import { AUDIO_CHANNELS, buildEncoderCommand, buildFileRelayCommand, buildRelayCommand, getProfile, SAMPLE_RATE, type EncoderId } from "./encoderProfiles"
 
 // RTMP engine for the capture worker thread: no Electron imports, ffmpeg and encoder are resolved by the host
 export type RtmpResolved = { ffmpegPath: string; encoderId: EncoderId }
@@ -299,7 +299,39 @@ export class RtmpStreamer {
         streamer.encoder = encoder
         streamer.inputSize = inputSize
         streamer.encoderStartedAt = Date.now()
-        streamer.lastAudioTime = Date.now()
+        streamer.lastAudioTime = 0
+
+        // Haidangshow fix: the video is held until the first audio packet, but audio is only sent while
+        // something in the app plays sound. Recording/streaming slides or cameras without any sound
+        // produced an empty file (header only). Feed silence whenever real audio is missing.
+        if (config.enableAudio) {
+            const bytesPerMs = ((streamer.sampleRate || SAMPLE_RATE) * AUDIO_CHANNELS * 2) / 1000 // s16le
+            let clock = Date.now()
+            streamer.audioInterval = setInterval(() => {
+                const now = Date.now()
+
+                // real audio is flowing (or the encoder just started and audio may still come)
+                if (now - streamer.lastAudioTime < 300 || (!streamer.hasReceivedFirstAudio && now - streamer.encoderStartedAt < 1000)) {
+                    clock = now
+                    return
+                }
+
+                const audioStream = streamer.encoder?.stdio[3] as any
+                if (!audioStream || audioStream.destroyed) return
+                // encoder busy: keep the elapsed time, the next tick writes it (silence stays in sync with the video)
+                if (audioStream.writableLength > 0) return
+
+                const bytes = Math.floor((Math.min(1000, now - clock) * bytesPerMs) / 4) * 4
+                clock = now
+                if (bytes <= 0) return
+                try {
+                    audioStream.write(Buffer.alloc(bytes))
+                    streamer.hasReceivedFirstAudio = true
+                } catch {
+                    // pipe closed while stopping
+                }
+            }, 40)
+        }
 
         encoder.stdin?.on("error", () => {}) // suppress writes racing teardown
         ;(encoder.stdio[3] as any)?.on("error", () => {})
@@ -679,6 +711,7 @@ export class RtmpStreamer {
             if (!audioStream || audioStream.destroyed) return
 
             if (!streamer.hasReceivedFirstAudio) streamer.hasReceivedFirstAudio = true
+            streamer.lastAudioTime = Date.now()
 
             try {
                 // an output turned off keeps streaming, silent
