@@ -942,7 +942,9 @@
         "fx_intensity": "Cường độ",
         "fx_lut_invalid": "File này không phải LUT 3D .cube hợp lệ.",
         "fx_lut_hint": "LUT 3D định dạng .cube (Premiere, DaVinci Resolve, Final Cut, LUT log của máy quay).",
-        "rec_meter_hint": "Thời gian ghi và mức âm thanh đang đưa vào file ghi. Có người nói mà vạch không nhảy = file sẽ không có tiếng."
+        "rec_meter_hint": "Thời gian ghi và mức âm thanh đang đưa vào file ghi. Có người nói mà vạch không nhảy = file sẽ không có tiếng.",
+        "mic_duplicate": "Micro này cũng đang gắn với một camera: khi camera đó lên sóng, cùng một tiếng sẽ phát 2 lần (vọng). Hãy tắt (M) nguồn này hoặc bỏ gắn micro ở camera (🎤).",
+        "mic_duplicate_short": "trùng"
     },
     "stage": {
         "slide": "Slide",

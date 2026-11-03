@@ -131,7 +131,10 @@
                 <MixerRecMeter nodeId="network_sub_{monitorOutputId}" />
             {/if}
         </button>
-        <button class="pill" class:live={isoActive} disabled={!$mixer.inputs.some((i) => i.type === "camera")} on:click={() => (isoActive ? stopIso() : startIso())}>● ISO</button>
+        <button class="pill" class:live={isoActive} disabled={!$mixer.inputs.some((i) => i.type === "camera")} on:click={() => (isoActive ? stopIso() : startIso())}>
+            ● ISO
+            {#if isoActive}<span class="elapsed">{elapsed(Math.min(...Object.values($isoRecording)), now)}</span>{/if}
+        </button>
         <div class="clock">{time}</div>
     </header>
 

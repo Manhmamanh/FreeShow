@@ -1443,7 +1443,9 @@
         "fx_intensity": "Intensity",
         "fx_lut_invalid": "This file is not a valid 3D .cube LUT.",
         "fx_lut_hint": "3D LUTs in .cube format (Premiere, DaVinci Resolve, Final Cut, camera log LUTs).",
-        "rec_meter_hint": "Recording time and the sound level sent to the recording. No movement while people speak = no sound in the file."
+        "rec_meter_hint": "Recording time and the sound level sent to the recording. No movement while people speak = no sound in the file.",
+        "mic_duplicate": "This microphone is also linked to a camera: while that camera is on air the same sound plays twice. Mute this input or unlink the camera microphone (🎤).",
+        "mic_duplicate_short": "duplicate"
     },
     "stage": {
         "stage_layout": "Stage layout",

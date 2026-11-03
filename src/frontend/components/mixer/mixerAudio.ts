@@ -294,6 +294,12 @@ export async function findLinkedMicrophone(cameraName: string, cameraGroup = "")
         const byGroup = cameraGroup ? devices.find((d) => d.groupId === cameraGroup) : undefined
         if (byGroup) return byGroup.deviceId
 
+        // the Mac's own camera (FaceTime HD / built-in) goes with the Mac's own microphone
+        if (/facetime|built-in|tích hợp|integrated/i.test(cameraName)) {
+            const builtIn = devices.find((d) => /built-in|tích hợp|integrated|macbook|imac|mac mini|mac studio/i.test(d.label) && !/iphone|continuity/i.test(d.label))
+            if (builtIn) return builtIn.deviceId
+        }
+
         const base = cameraName
             .replace(/\b(camera|webcam|video|cam)\b/gi, "")
             .replace(/\(.*?\)/g, "")

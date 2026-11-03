@@ -76,7 +76,8 @@ export function getOnAirFactor(inputId: string, mixer: OutMixer | null | undefin
 
 export function getInputGain(input: MixerInput, mixer: OutMixer | null | undefined, progress: number): number {
     const volume = inputVolume(input)
-    if (input.audioFollow === false || input.type === "audiofile") return volume
+    // inputs without a picture are never "on air": AFV does not apply to them
+    if (input.audioFollow === false || input.type === "audiofile" || input.type === "audio") return volume
     return volume * getOnAirFactor(input.id, mixer, progress)
 }
 

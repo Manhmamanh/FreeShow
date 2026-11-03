@@ -70,6 +70,10 @@ describe("audio follow video", () => {
         expect(getInputGain(song, out(), 0)).toBeCloseTo(0.6)
         expect(getInputGain({ ...song, muted: true }, out(), 0)).toBe(0)
     })
+    it("microphones are always audible (AFV does not apply without a picture)", () => {
+        const mic: MixerInput = { id: "mic", name: "Mic", type: "audio", sourceId: "dev", volume: 1, audioFollow: true }
+        expect(getInputGain(mic, out(), 0)).toBe(1)
+    })
     it("always-on and muted inputs", () => {
         expect(getInputGain(music, out(), 0)).toBeCloseTo(0.8)
         expect(getInputGain({ ...cam1, muted: true }, out(), 0)).toBe(0)

@@ -156,24 +156,35 @@ export async function startIso(inputIds?: string[]) {
     }
 
     const stamp = timestamp()
-    for (const original of inputs) {
-        if (isoRecorders.has(original.id)) continue
-        const input = await withLinkedMic(original)
-        const opened = await openStream(input)
-        if (!opened) continue
+    const folder = get(special)?.audioRecordingsPath
 
-        const format = pickFormat(opened.stream.getAudioTracks().length > 0)
+    // open every camera + microphone first (in parallel), then start all recorders at the same moment,
+    // so the ISO files start together and none loses its first seconds while others are still opening
+    const opened = await Promise.all(
+        inputs
+            .filter((i) => !isoRecorders.has(i.id))
+            .map(async (original) => {
+                const input = await withLinkedMic(original)
+                const stream = await openStream(input)
+                return stream ? { input, ...stream } : null
+            })
+    )
+
+    const startedAt = Date.now()
+    for (const item of opened) {
+        if (!item) continue
+        const { input } = item
+        const format = pickFormat(item.stream.getAudioTracks().length > 0)
         let recorder: MediaRecorder
         try {
-            recorder = new MediaRecorder(opened.stream, { mimeType: format.mimeType, videoBitsPerSecond: 12_000_000, audioBitsPerSecond: 192_000 })
+            recorder = new MediaRecorder(item.stream, { mimeType: format.mimeType, videoBitsPerSecond: 12_000_000, audioBitsPerSecond: 192_000 })
         } catch (err) {
             console.error("[Mixer] ISO recorder", err)
-            opened.release()
+            item.release()
             continue
         }
 
-        const entry: IsoRecorder = { recorder, release: opened.release, queue: Promise.resolve(), id: `${input.id}_${stamp}`, name: `Haidangshow_ISO_${cleanName(input.name)}_${stamp}.${format.extension}`, startedAt: Date.now() }
-        const folder = get(special)?.audioRecordingsPath
+        const entry: IsoRecorder = { recorder, release: item.release, queue: Promise.resolve(), id: `${input.id}_${stamp}`, name: `Haidangshow_ISO_${cleanName(input.name)}_${stamp}.${format.extension}`, startedAt }
 
         // chunks are written in order, one after the other
         recorder.ondataavailable = (e) => {
@@ -184,11 +195,12 @@ export async function startIso(inputIds?: string[]) {
             entry.queue = entry.queue.then(() => sendMain(Main.MIXER_ISO_CHUNK, { id: entry.id, name: entry.name, data: new ArrayBuffer(0), done: true, folder }))
             entry.release()
         }
-        recorder.start(1000)
-
         isoRecorders.set(input.id, entry)
-        isoRecording.update((a) => ({ ...a, [input.id]: entry.startedAt }))
     }
+
+    // start together
+    isoRecorders.forEach((entry) => entry.recorder.state === "inactive" && entry.recorder.start(1000))
+    isoRecording.set(Object.fromEntries([...isoRecorders].map(([id, e]) => [id, e.startedAt])))
 
     if (isoRecorders.size) newToast(`ISO: ${isoRecorders.size} camera(s) recording`)
 }

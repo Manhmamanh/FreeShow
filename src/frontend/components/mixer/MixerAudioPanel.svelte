@@ -33,7 +33,9 @@
             {@const volume = input.volume ?? 1}
             {@const onAir = programId === input.id || pipIds.includes(input.id)}
             {@const sound = canPlaySound(input)}
-            <div class="strip" class:onAir class:off={!sound}>
+            {@const duplicate = input.type === "audio" && $mixer.inputs.some((c) => c.type === "camera" && c.audioDeviceId === input.sourceId)}
+            <div class="strip" class:onAir class:off={!sound} class:duplicate title={duplicate ? translateText("mixer.mic_duplicate", $dictionary) : ""}>
+                {#if duplicate}<span class="dup">⚠ {translateText("mixer.mic_duplicate_short", $dictionary)}</span>{/if}
                 <div class="name" title={input.name}><b>{$mixer.inputs.indexOf(input) + 1}</b> {input.name}</div>
 
                 <div class="faderRow">
@@ -44,7 +46,12 @@
 
                 <div class="buttons">
                     <button class="m" class:active={input.muted} title="Mute" on:click={() => updateInput(input.id, { muted: !input.muted })}>M</button>
-                    <button class="a" class:active={input.audioFollow !== false} title={translateText("mixer.afv_hint", $dictionary)} on:click={() => updateInput(input.id, { audioFollow: input.audioFollow === false })}>A</button>
+                    {#if input.type === "audio" || input.type === "audiofile"}
+                        <!-- no picture: always audible (AFV would keep them silent forever) -->
+                        <span class="on" title={translateText("mixer.always_on", $dictionary)}>ON</span>
+                    {:else}
+                        <button class="a" class:active={input.audioFollow !== false} title={translateText("mixer.afv_hint", $dictionary)} on:click={() => updateInput(input.id, { audioFollow: input.audioFollow === false })}>A</button>
+                    {/if}
                     {#if input.type === "camera"}
                         <button class="mic" class:active={!!input.audioDeviceId} title={translateText("mixer.linked_mic", $dictionary)} on:click={() => (micMenu = micMenu === input.id ? "" : input.id)}>🎤</button>
                     {/if}
@@ -214,5 +221,26 @@
         padding: 8px;
         color: var(--mx-muted);
         font-size: 0.8em;
+    }
+
+    .on {
+        flex: 1;
+        height: 18px;
+        line-height: 18px;
+        border-radius: 2px;
+        background: linear-gradient(#1fae5c, #178a48);
+        color: white;
+        font-size: 0.65em;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .strip.duplicate {
+        border-color: #f5a623;
+    }
+    .dup {
+        font-size: 0.6em;
+        font-weight: 800;
+        color: #f5a623;
     }
 </style>
