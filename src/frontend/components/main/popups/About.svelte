@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { activePopup, version } from "../../../stores"
+    import { version } from "../../../stores"
     import T from "../../helpers/T.svelte"
     import Link from "../../inputs/Link.svelte"
-    import MaterialButton from "../../inputs/MaterialButton.svelte"
 
     const assets: { name: string; url: string; title?: string }[] = [
         { name: "CMG Sans (Custom font)", url: "https://www.churchmotiongraphics.com/cmg-sans/" },
@@ -24,16 +23,15 @@
 
 <div style="text-align: center;">
     <div class="logo">
-        <img style="height: 35px;" src="./import-logos/freeshow.webp" alt="FreeShow-logo" draggable={false} />
-        <h1 style="color: var(--text);font-size: 1.7em;">FreeShow</h1>
+        <img style="height: 40px;" src="./brand/haidangshow-logo.svg" alt="Haidangshow" draggable={false} />
+        <h1 style="color: var(--text);font-size: 1.7em;">Haidangshow</h1>
     </div>
 
     <p style="font-size: 0.8em;margin-top: 2px;">
         <span style="opacity: 0.8;">v{$version}</span>
-        <MaterialButton variant="outlined" style="margin-left: 5px;display: inline-flex;min-height: 0;padding: 0 5px;vertical-align: baseline;" on:click={() => activePopup.set("update_manager")} white>
-            <T id="about.check_updates" />
-        </MaterialButton>
     </p>
+    <!-- GPL-3.0: keep the credit of the original project -->
+    <p style="font-size: 0.75em;opacity: 0.6;margin-top: 4px;">Based on FreeShow © ChurchApps · GPL-3.0</p>
 
     <!-- <p>
         <Link url="https://churchapps.org/">ChurchApps</Link>

@@ -59,7 +59,7 @@ export class OmtSender {
     }
 
     static initNameOMT(name?: string, outputName?: string) {
-        return name || `FreeShow OMT${outputName ? ` - ${outputName}` : ""}`
+        return name || `Haidangshow OMT${outputName ? ` - ${outputName}` : ""}`
     }
 
     static isBusyOMT(id: string): boolean {

@@ -1,4 +1,5 @@
 <script>
+    import { BRAND } from "../../../types/Brand"
     import { slide } from "svelte/transition"
     import { activePopup, guideActive, isDev, special } from "../../stores"
     import Icon from "../helpers/Icon.svelte"
@@ -53,7 +54,7 @@
     $: if ($activePopup === "initialize" || $guideActive) isClosed = true
 </script>
 
-{#if !isClosed && !$isDev}
+{#if !isClosed && !$isDev && !BRAND.isFork}
     <section class="toolbar" transition:slide={{ duration: 150 }}>
         <div class="text">
             {#if activeMessage === "donate"}
