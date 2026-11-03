@@ -54,17 +54,17 @@ jobs:
       - name: Install dependencies
         run: |
           set -o pipefail
-          npm ci 2>&1 | tee -a build.log
+          npm ci 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       - name: Install dmg-license
         run: |
           set -o pipefail
-          npm i --no-save dmg-license 2>&1 | tee -a build.log
+          npm i --no-save dmg-license 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       - name: Build app
         run: |
           set -o pipefail
-          npm run build 2>&1 | tee -a build.log
+          npm run build 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       - name: Package .dmg (ad-hoc signed, not notarized)
         env:
@@ -73,8 +73,14 @@ jobs:
           set -o pipefail
           # test builds have no Apple Developer account: skip the notarize.js afterSign hook
           printf 'extends: config/building/electron-builder.local.yaml\nafterSign: null\nmac:\n    identity: "-"\n    notarize: false\n' > electron-builder.ci.yaml
-          npx electron-builder --config electron-builder.ci.yaml --mac dmg --${{ matrix.arch }} --publish never 2>&1 | tee -a build.log
+          npx electron-builder --config electron-builder.ci.yaml --mac dmg --${{ matrix.arch }} --publish never 2>&1 | tee -a "$RUNNER_TEMP/build.log"
           ls -la dist
+
+      # the asar must match its header hashes, or Electron quits at launch without any message
+      - name: Verify app.asar integrity
+        run: |
+          set -o pipefail
+          node scripts/ci/verifyAsar.js dist 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       - name: Upload .dmg (artifact)
         uses: actions/upload-artifact@v4
@@ -103,8 +109,9 @@ jobs:
         if: failure()
         run: |
           # GitHub keeps only ~10 annotations per step, so send chunks of 15 lines each (newlines encoded as %0A)
-          touch build.log
-          tail -n 120 build.log | grep -v '^\s*$' | tail -n 90 | tr -d '\r' | cut -c1-300 | sed 's/%/%25/g' > tail.log
+          LOG="$RUNNER_TEMP/build.log"
+          touch "$LOG"
+          tail -n 120 "$LOG" | grep -v '^\s*$' | tail -n 90 | tr -d '\r' | cut -c1-300 | sed 's/%/%25/g' > tail.log
           split -l 15 tail.log chunk_
           for c in chunk_*; do
             msg=$(awk 'BEGIN{ORS="%0A"} {print}' "$c")
