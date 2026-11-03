@@ -102,7 +102,12 @@ jobs:
           for f in dist/*.dmg; do
             target="Haidangshow-${{ matrix.arch }}.dmg"
             cp "$f" "$target"
-            gh release upload "$RELEASE_TAG" "$target" --clobber
+            # both architectures update the same release at the same time: retry on conflicts
+            for attempt in 1 2 3 4; do
+              gh release upload "$RELEASE_TAG" "$target" --clobber && break
+              echo "upload failed (attempt $attempt), retrying"
+              sleep $((attempt * 10))
+            done
           done
           # files of the old name (before the Haidangshow rename) would only confuse
           gh release delete-asset "$RELEASE_TAG" "FreeShow-Mixer-${{ matrix.arch }}.dmg" -y 2>/dev/null || true
