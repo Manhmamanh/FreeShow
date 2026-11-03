@@ -96,9 +96,19 @@
 3. Chuyển slide: phím `→` / `←`, `Space`, hoặc remote clicker.
 4. Khung Preview bên phải chính là **thứ khán giả đang thấy**.
 
-### 6.2. Ảnh, video, PowerPoint/PDF
-- Mở ngăn **Media** ở phía dưới, bấm vào ảnh hoặc video để chiếu.
-- PowerPoint/PDF: kéo file vào dự án, bấm để mở và chiếu từng trang.
+### 6.2. Các loại file và cách mở
+
+| Loại file | Mở ở đâu | Ghi chú |
+|---|---|---|
+| Ảnh, video (`.jpg .png .mp4 .mov`…) | Ngăn **Media** dưới trang Trình chiếu, hoặc kéo vào dự án | Trang Mixer: **+ Thêm nguồn → File media / âm thanh** |
+| **PDF** | Kéo thả vào **dự án** (cột trái trang Trình chiếu) | Chiếu từng trang như slide |
+| **PowerPoint / Keynote** (`.ppt .pptx .key`) | Kéo vào dự án (chuyển thành slide), hoặc **Nhập → PowerPoint → PDF** (giữ nguyên bố cục) | Cần **Keynote** (miễn phí trên Mac), LibreOffice hoặc PowerPoint |
+| **Word / Excel** (`.doc .docx .xls .xlsx`), Pages, Numbers | Kéo thả vào **dự án**: app tự chuyển sang **PDF** rồi thêm vào dự án | Cần **Pages / Numbers** (miễn phí trên Mac), LibreOffice hoặc Microsoft Office |
+| **Âm thanh** (`.mp3 .wav .m4a .aac .flac`…) | Ngăn **Âm thanh** dưới trang Trình chiếu, hoặc trang Mixer: **+ Thêm nguồn → File media / âm thanh** | Trong Mixer: nút **▶ PLAY / ⏸ PAUSE**, LOOP, fader âm lượng |
+
+> ⚠️ Lần đầu chuyển Word/Excel/PowerPoint bằng Keynote/Pages/Numbers, macOS sẽ hỏi *"Haidangshow muốn điều khiển Keynote/Pages/Numbers"*: bấm **OK**. Lỡ bấm từ chối: **System Settings → Privacy & Security → Automation → Haidangshow**, bật lại.
+>
+> ℹ️ Chưa có Keynote/Pages/Numbers: tải miễn phí trên **App Store**. Hoặc cài **LibreOffice** (miễn phí, libreoffice.org).
 
 ### 6.3. Camera, khách mời, PiP (trang **Mixer**)
 1. Bấm **Mixer** trên thanh menu (phím `6`).
@@ -149,6 +159,8 @@
 | Không có tiếng | Sai thiết bị âm thanh | System Settings → Sound → Output, và Cài đặt → Âm thanh trong app |
 | Camera đen trong Mixer | Chưa cấp quyền Camera | System Settings → Privacy & Security → **Camera** → bật Haidangshow, rồi mở lại app |
 | App mở rồi tắt ngay | Bản tải về bị macOS gắn cờ cách ly (quarantine) | Chạy lệnh `xattr -cr /Applications/Haidangshow.app` rồi mở lại |
+| Word/Excel/PPT không mở được | Máy chưa có Keynote/Pages/Numbers, LibreOffice hoặc Office, hoặc đã từ chối quyền Automation | Cài Pages/Numbers/Keynote (App Store, miễn phí), hoặc bật lại quyền ở **Privacy & Security → Automation** |
+| File âm thanh không thêm được vào Mixer | Bản Haidangshow cũ (trước 03/11) | Cập nhật bản mới nhất |
 | Mac ngủ hoặc tắt màn hình giữa chừng | Cài đặt tiết kiệm pin | System Settings → Lock Screen / Displays: tắt tự tắt màn hình khi đang chạy sự kiện. MacBook: cắm sạc |
 
 ---

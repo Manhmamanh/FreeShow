@@ -834,7 +834,7 @@
         "add_input": "Thêm nguồn",
         "camera": "Camera",
         "screen": "Màn hình",
-        "media_file": "File media",
+        "media_file": "File media / âm thanh",
         "searching": "Đang tìm...",
         "no_sources": "Không tìm thấy nguồn",
         "no_inputs": "Chưa có nguồn. Thêm camera, NDI, màn hình hoặc file media.",
@@ -913,7 +913,10 @@
         "guest_live": "Đang lên hình",
         "guest_error": "Lỗi kết nối",
         "guest_webview_mode": "Chế độ tương thích (webview)",
-        "guest_mode_hint": "Tắt (khuyên dùng): WebRTC trực tiếp, chạy được với NDI/RTMP và bàn trộn âm thanh. Bật: hiện trang VDO.Ninja, chỉ dùng khi chế độ trực tiếp không kết nối được."
+        "guest_mode_hint": "Tắt (khuyên dùng): WebRTC trực tiếp, chạy được với NDI/RTMP và bàn trộn âm thanh. Bật: hiện trang VDO.Ninja, chỉ dùng khi chế độ trực tiếp không kết nối được.",
+        "converting_documents": "Đang chuyển tài liệu sang PDF…",
+        "convert_failed": "Một số tài liệu chưa chuyển được sang PDF. Hãy cài Keynote, Pages, Numbers (miễn phí trên App Store), LibreOffice (miễn phí) hoặc Microsoft Office rồi thử lại.",
+        "office_hint": "PDF, PowerPoint, Keynote, Word, Excel: kéo thả vào dự án ở trang Trình chiếu (tự chuyển sang PDF), rồi chiếu như slide, nằm trên hình của Mixer."
     },
     "stage": {
         "slide": "Slide",

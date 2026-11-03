@@ -11,6 +11,7 @@ export type MixerInputType =
     | "replay" // instant replay clip (video file made from the replay buffer)
     | "guest" // remote guest over VDO.Ninja (WebRTC)
     | "audio" // audio only: microphone / audio interface
+    | "audiofile" // audio only: music / sound file with its own play/pause (never on the program picture)
 
 export interface MixerInput {
     id: string // unique mixer id
@@ -19,6 +20,7 @@ export interface MixerInput {
     sourceId: string // device id / NDI url / screen id / file path / guest stream id / audio device id
     cameraGroup?: string
     loop?: boolean
+    playing?: boolean // audiofile: playing right now
 
     // audio
     volume?: number // 0-1.5, default 1

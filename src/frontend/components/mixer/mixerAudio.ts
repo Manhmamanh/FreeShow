@@ -11,7 +11,7 @@ import { AudioAnalyser } from "../../audio/audioAnalyser"
 import { outputs } from "../../stores"
 import { encodeFilePath } from "../helpers/media"
 import { acquireGuestStream, releaseGuestStream } from "./guestReceiver"
-import { getMonitorOutputId, mixer } from "./mixer"
+import { getMonitorOutputId, mixer, updateInput } from "./mixer"
 import { ease, getInputGain, getOnAirFactor, getProgress, mixerLiveAmount } from "./mixerLive"
 
 type Source = {
@@ -37,7 +37,7 @@ const sourceKey = (inputId: string) => `mixer_${inputId}`
 
 const isWebviewGuest = (input: MixerInput) => input.type === "guest" && input.guestMode === "webview"
 
-export const hasAudio = (input: MixerInput) => input.type === "video" || input.type === "audio" || input.type === "guest" || ((input.type === "camera" || input.type === "replay") && !!input.audioDeviceId)
+export const hasAudio = (input: MixerInput) => input.type === "video" || input.type === "audiofile" || input.type === "audio" || input.type === "guest" || ((input.type === "camera" || input.type === "replay") && !!input.audioDeviceId)
 
 let started = false
 export function startMixerAudio() {
@@ -82,6 +82,7 @@ function update() {
             return
         }
         ensureSource(input)
+        if (input.type === "audiofile") syncAudioFile(input)
     })
 
     // file audio starts together with its picture (which is mounted when the input goes on air)
@@ -103,7 +104,7 @@ function ensureSource(input: MixerInput) {
     const existing = sources.get(input.id)
 
     // files (replay clips contain the sound of the camera's linked microphone)
-    if (input.type === "video" || input.type === "replay") {
+    if (input.type === "video" || input.type === "replay" || input.type === "audiofile") {
         if (existing?.kind === "file" && existing.path === input.sourceId) {
             applyFileOptions(existing, input)
             return
@@ -119,7 +120,12 @@ function ensureSource(input: MixerInput) {
             fileSource.attached = true
             updateGains(false)
         })
-        if (input.audioFollow === false) element.play().catch(() => null)
+        if (input.type === "audiofile") {
+            // a finished (not looping) audio file stops its play button
+            element.addEventListener("ended", () => {
+                if (!element.loop) updateInput(input.id, { playing: false })
+            })
+        } else if (input.audioFollow === false) element.play().catch(() => null)
         return
     }
 
@@ -179,9 +185,21 @@ function ensureSource(input: MixerInput) {
         .catch((err) => console.error("[Mixer] Could not open audio device", deviceId, err))
 }
 
+/** play/pause button of audio file inputs (they restart from the beginning after they ended) */
+function syncAudioFile(input: MixerInput) {
+    const element = sources.get(input.id)?.element
+    if (!element) return
+    if (input.playing && element.paused) {
+        if (element.ended) element.currentTime = 0
+        element.play().catch(() => null)
+    } else if (!input.playing && !element.paused) {
+        element.pause()
+    }
+}
+
 function applyFileOptions(source: Source, input: MixerInput) {
     if (!source.element) return
-    source.element.loop = input.type === "video" && input.loop !== false
+    source.element.loop = (input.type === "video" || input.type === "audiofile") && input.loop !== false
     source.element.playbackRate = input.playbackRate || 1
 }
 

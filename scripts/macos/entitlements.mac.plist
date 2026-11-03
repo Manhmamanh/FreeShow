@@ -34,6 +34,10 @@
     <key>com.apple.security.cs.allow-jit</key>
     <true/>
     
+    <!-- Apple Events: Keynote/Pages/Numbers/PowerPoint convert documents to PDF, presentation control -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+
     <!-- Network client: API calls, downloads, external services -->
     <key>com.apple.security.network.client</key>
     <true/>

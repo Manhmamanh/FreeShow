@@ -76,7 +76,7 @@ export function getOnAirFactor(inputId: string, mixer: OutMixer | null | undefin
 
 export function getInputGain(input: MixerInput, mixer: OutMixer | null | undefined, progress: number): number {
     const volume = inputVolume(input)
-    if (input.audioFollow === false) return volume
+    if (input.audioFollow === false || input.type === "audiofile") return volume
     return volume * getOnAirFactor(input.id, mixer, progress)
 }
 

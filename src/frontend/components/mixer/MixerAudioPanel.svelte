@@ -17,7 +17,7 @@
 
     const toDb = (v: number) => (v <= 0 ? "-∞" : (20 * Math.log10(v)).toFixed(1))
     const levelPercent = (db: number | undefined) => (db === undefined ? 0 : Math.max(0, Math.min(100, ((db + 60) / 60) * 100)))
-    const canPlaySound = (input: MixerInput) => input.type === "video" || input.type === "audio" || input.type === "guest" || input.type === "replay" || !!input.audioDeviceId
+    const canPlaySound = (input: MixerInput) => input.type === "video" || input.type === "audiofile" || input.type === "audio" || input.type === "guest" || input.type === "replay" || !!input.audioDeviceId
 
     let micMenu = ""
 </script>

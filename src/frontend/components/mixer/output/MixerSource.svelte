@@ -105,9 +105,9 @@
         <!-- direct WebRTC: a normal video element, so offscreen outputs (NDI/RTMP) capture it; sound via mixerAudio -->
         <!-- svelte-ignore a11y-media-has-caption -->
         <video class="guestVideo" use:guestVideo={input.sourceId} autoplay muted playsinline />
-    {:else if input.type === "audio"}
+    {:else if input.type === "audio" || input.type === "audiofile"}
         {#if thumbnail}
-            <div class="icon"><Icon id="microphone" size={2.5} white /></div>
+            <div class="icon"><Icon id={input.type === "audiofile" ? "music" : "microphone"} size={2.5} white /></div>
         {/if}
     {/if}
 </div>

@@ -6,12 +6,14 @@ import type { History } from "../../../types/History"
 import { Main } from "../../../types/IPC/Main"
 import type { DropData, Selected } from "../../../types/Main"
 import type { Item, Slide, SlideAction } from "../../../types/Show"
-import { sendMain } from "../../IPC/main"
+import { requestMain, sendMain } from "../../IPC/main"
 import { changeLayout, changeSlideGroups } from "../../show/slides"
 import { activeDrawerTab, activeEdit, activePage, activePopup, activeProject, activeShow, alertMessage, audioFolders, audioPlaylists, audioStreams, drawerTabsData, editingProjectTemplate, effectsLibrary, media, mediaFolders, overlays, playerVideos, projects, projectTemplates, scenes, scriptureSettings, shows, showsCache, slidesOptions, templates, timers } from "../../stores"
+import { addToProject } from "../../converters/project"
 import { newToast } from "../../utils/common"
+import { translateText } from "../../utils/language"
 import { getAccess } from "../../utils/profile"
-import { audioExtensions, imageExtensions, mediaExtensions, presentationExtensions, videoExtensions } from "../../values/extensions"
+import { audioExtensions, documentExtensions, imageExtensions, mediaExtensions, presentationExtensions, videoExtensions } from "../../values/extensions"
 import { actionData } from "../actions/actionData"
 import { addSlideAction, getActionTriggerId, isMatchingSlideAction } from "../actions/actions"
 import { getActiveScripturesContent, getReferenceText, getScriptureShow, getScriptureSlidesNew } from "../drawer/bible/scripture"
@@ -147,6 +149,7 @@ export const dropActions = {
         if (drag.id === "media" || drag.id === "files") {
             const extraFiles: string[] = []
             const pptFiles: string[] = []
+            const documentFiles: string[] = []
             const projectFiles: string[] = []
 
             data = data
@@ -175,6 +178,12 @@ export const dropActions = {
                         downloadOnlineMedia(path)
                     }
 
+                    // Word/Excel/Pages/Numbers... become PDFs
+                    if (documentExtensions.includes(extension.toLowerCase())) {
+                        documentFiles.push(path)
+                        return null
+                    }
+
                     const type: string = getMediaType(extension)
 
                     if (type === "ppt") {
@@ -193,6 +202,8 @@ export const dropActions = {
             if (pptFiles.length) sendMain(Main.IMPORT_FILES, { id: "powerpoint", paths: pptFiles })
             // iport projects
             if (projectFiles.length) sendMain(Main.IMPORT_FILES, { id: "freeshow_project", paths: projectFiles })
+            // convert documents to PDF, then add them to the project
+            if (documentFiles.length) convertDocumentsToProject(documentFiles)
         } else if (drag.id === "urls") {
             data = await Promise.all(
                 data.map(async (url) => {
@@ -622,7 +633,7 @@ export function addDrawerFolder(file: any, type: "media" | "audio") {
 }
 
 // "show", "project"
-const projectExtra = ["pdf", ...presentationExtensions]
+const projectExtra = ["pdf", ...presentationExtensions, ...documentExtensions]
 const fileDropExtensions = [...imageExtensions, ...videoExtensions, ...audioExtensions]
 
 const files = {
@@ -1200,4 +1211,15 @@ function createSlideAction(triggerId: string, slideIndex: number, data: any, rem
 
     actions.slideActions = slideActions
     return actions
+}
+
+/** Word, Excel, Pages, Numbers... -> PDF (main process converter) -> project items */
+async function convertDocumentsToProject(paths: string[]) {
+    newToast(translateText("mixer.converting_documents"))
+    const result = await requestMain(Main.OFFICE_TO_PDF, { paths }, undefined, 10 * 60 * 1000)
+    if (result?.pdfs?.length) addToProject("pdf", result.pdfs)
+    if (!result || result.failed?.length) {
+        alertMessage.set(translateText("mixer.convert_failed") + (result?.failed?.length ? "<br><br>" + result.failed.map((f) => getFileName(f)).join("<br>") : ""))
+        activePopup.set("alert")
+    }
 }

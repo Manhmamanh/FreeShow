@@ -1335,7 +1335,7 @@
         "add_input": "Add input",
         "camera": "Camera",
         "screen": "Screen",
-        "media_file": "Media file",
+        "media_file": "Media / audio file",
         "searching": "Searching...",
         "no_sources": "No sources found",
         "no_inputs": "No inputs yet. Add a camera, NDI source, screen or media file.",
@@ -1414,7 +1414,10 @@
         "guest_live": "Live",
         "guest_error": "Connection error",
         "guest_webview_mode": "Compatibility mode (webview)",
-        "guest_mode_hint": "Off (recommended): direct WebRTC, works with NDI/RTMP and the audio mixer. On: shows the VDO.Ninja page itself, use only if direct mode does not connect."
+        "guest_mode_hint": "Off (recommended): direct WebRTC, works with NDI/RTMP and the audio mixer. On: shows the VDO.Ninja page itself, use only if direct mode does not connect.",
+        "converting_documents": "Converting documents to PDF…",
+        "convert_failed": "Some documents could not be converted to PDF. Install Keynote, Pages and Numbers (free in the App Store), LibreOffice (free) or Microsoft Office, then try again.",
+        "office_hint": "PDF, PowerPoint, Keynote, Word, Excel: drag them into a project on the Show page (they are converted to PDF automatically), then show them over the mixer like any slide."
     },
     "stage": {
         "stage_layout": "Stage layout",

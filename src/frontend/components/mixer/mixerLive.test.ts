@@ -65,6 +65,11 @@ describe("audio follow video", () => {
         const o = out({ pips: [{ id: "p", inputId: "b", enabled: true, x: 0, y: 0, w: 30, h: 30, radius: 0, border: 0, borderColor: "#fff", fit: "cover", input: cam2 }] })
         expect(getOnAirFactor("b", o, 0)).toBe(1)
     })
+    it("audio files play at their volume (no picture, AFV ignored)", () => {
+        const song: MixerInput = { id: "s", name: "Song", type: "audiofile", sourceId: "/song.mp3", volume: 0.6, audioFollow: true }
+        expect(getInputGain(song, out(), 0)).toBeCloseTo(0.6)
+        expect(getInputGain({ ...song, muted: true }, out(), 0)).toBe(0)
+    })
     it("always-on and muted inputs", () => {
         expect(getInputGain(music, out(), 0)).toBeCloseTo(0.8)
         expect(getInputGain({ ...cam1, muted: true }, out(), 0)).toBe(0)

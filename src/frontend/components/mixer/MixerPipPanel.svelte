@@ -5,7 +5,7 @@
     import Icon from "../helpers/Icon.svelte"
     import { addPip, getPipPreset, mixer, movePip, PIP_PRESETS, removePip, togglePip, updatePip, type PipPreset } from "./mixer"
 
-    $: videoInputs = $mixer.inputs.filter((i) => i.type !== "audio")
+    $: videoInputs = $mixer.inputs.filter((i) => i.type !== "audio" && i.type !== "audiofile")
     let newInputId = ""
     $: if (!newInputId || !videoInputs.some((i) => i.id === newInputId)) newInputId = $mixer.previewId && videoInputs.some((i) => i.id === $mixer.previewId) ? $mixer.previewId : videoInputs[0]?.id || ""
 

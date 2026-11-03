@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-    const icons = { camera: "camera", ndi: "ndi", omt: "ndi", screen: "screen", blackmagic: "camera", video: "video", image: "image", replay: "history", guest: "people", audio: "microphone" }
+    const icons = { camera: "camera", ndi: "ndi", omt: "ndi", screen: "screen", blackmagic: "camera", video: "video", image: "image", replay: "history", guest: "people", audio: "microphone", audiofile: "music" }
     export const inputIcon = (type: string) => icons[type] || "media"
 </script>
 
@@ -9,7 +9,7 @@
     import { createEventDispatcher } from "svelte"
     import type { MixerInput, MixerPip } from "../../../types/Mixer"
     import Icon from "../helpers/Icon.svelte"
-    import { assignPipSlot, cut, PIP_SLOTS, quickPlay, removeInput, renameInput, setPreview, updateInput } from "./mixer"
+    import { assignPipSlot, cut, PIP_SLOTS, quickPlay, removeInput, renameInput, setPreview, toggleAudioFile, updateInput } from "./mixer"
     import MixerSource from "./output/MixerSource.svelte"
 
     export let input: MixerInput
@@ -24,7 +24,8 @@
 
     $: slotState = Array.from({ length: PIP_SLOTS }, (_, i) => (pips[i]?.inputId === input.id ? (pips[i].enabled ? "on" : "set") : ""))
     $: inPip = slotState.includes("on")
-    $: hasSound = input.type === "video" || input.type === "audio" || input.type === "guest" || input.type === "replay" || !!input.audioDeviceId
+    $: isAudioFile = input.type === "audiofile"
+    $: hasSound = input.type === "video" || isAudioFile || input.type === "audio" || input.type === "guest" || input.type === "replay" || !!input.audioDeviceId
 
     let editing = false
     function focusSelect(node: HTMLInputElement) {
@@ -54,8 +55,13 @@
         <button class="close" title="✕" disabled={isProgram} on:click={() => removeInput(input.id)}>✕</button>
     </div>
 
-    <button class="media" on:click={() => setPreview(input.id)} on:dblclick={() => quickPlay(input.id, true)} title={input.name}>
-        {#if live && input.type !== "audio"}
+    <button class="media" class:playing={isAudioFile && input.playing} on:click={() => setPreview(input.id)} on:dblclick={() => !isAudioFile && quickPlay(input.id, true)} title={input.name}>
+        {#if isAudioFile}
+            <div class="audioFile">
+                <Icon id="music" size={2.2} white />
+                <span>{input.playing ? "▶ PLAYING" : "⏸ STOPPED"}</span>
+            </div>
+        {:else if live && input.type !== "audio"}
             <MixerSource {input} mirror thumbnail />
         {:else}
             <Icon id={inputIcon(input.type)} size={2.4} white />
@@ -65,20 +71,28 @@
     </button>
 
     <div class="controls">
-        <div class="slots">
-            {#each slotState as state, i}
-                <button class="slot {state}" title="PiP {i + 1}" on:click={() => assignPipSlot(input.id, i)}>{i + 1}</button>
-            {/each}
-        </div>
-        <button class="ctl go" title="Quick Play" on:click={() => quickPlay(input.id, true)}>GO</button>
-        <button class="ctl" title="Cut" on:click={cutThis}>CUT</button>
-        {#if input.type === "video"}
-            <button class="ctl" class:active={input.loop !== false} title="Loop" on:click={() => updateInput(input.id, { loop: input.loop === false })}>LOOP</button>
-        {/if}
-        {#if hasSound}
-            <button class="ctl audio" class:muted={input.muted} title="Audio" on:click={() => updateInput(input.id, { muted: !input.muted })} on:contextmenu|preventDefault={() => dispatch("audio")}>
+        {#if isAudioFile}
+            <button class="ctl play" class:active={input.playing} title="Play / Pause" on:click={() => toggleAudioFile(input.id)}>{input.playing ? "⏸ PAUSE" : "▶ PLAY"}</button>
+            <button class="ctl" class:active={input.loop === true} title="Loop" on:click={() => updateInput(input.id, { loop: input.loop !== true })}>LOOP</button>
+            <button class="ctl audio" class:muted={input.muted} title="Audio" on:click={() => updateInput(input.id, { muted: !input.muted })}>
                 <Icon id={input.muted ? "volume_off" : "volume"} size={0.8} white />
             </button>
+        {:else}
+            <div class="slots">
+                {#each slotState as state, i}
+                    <button class="slot {state}" title="PiP {i + 1}" on:click={() => assignPipSlot(input.id, i)}>{i + 1}</button>
+                {/each}
+            </div>
+            <button class="ctl go" title="Quick Play" on:click={() => quickPlay(input.id, true)}>GO</button>
+            <button class="ctl" title="Cut" on:click={cutThis}>CUT</button>
+            {#if input.type === "video"}
+                <button class="ctl" class:active={input.loop !== false} title="Loop" on:click={() => updateInput(input.id, { loop: input.loop === false })}>LOOP</button>
+            {/if}
+            {#if hasSound}
+                <button class="ctl audio" class:muted={input.muted} title="Audio" on:click={() => updateInput(input.id, { muted: !input.muted })} on:contextmenu|preventDefault={() => dispatch("audio")}>
+                    <Icon id={input.muted ? "volume_off" : "volume"} size={0.8} white />
+                </button>
+            {/if}
         {/if}
     </div>
 </div>
@@ -265,5 +279,25 @@
     }
     .ctl.audio.muted {
         background: linear-gradient(#5a6475, #3c4454) !important;
+    }
+
+    .media.playing {
+        background: radial-gradient(circle, #13315f, #000 75%);
+    }
+    .audioFile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        color: var(--mx-muted);
+        font-size: 0.75em;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+    }
+    .media.playing .audioFile {
+        color: #5fd38d;
+    }
+    .ctl.play {
+        flex: 2;
     }
 </style>

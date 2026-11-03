@@ -151,9 +151,19 @@ export function addInput(input: Omit<MixerInput, "id">, select = true) {
 export function addMediaFiles(paths: string[]) {
     paths.forEach((path) => {
         const mediaType = getMediaType(getExtension(path))
+        const name = removeExtension(getFileName(path))
+        // music / sound effects: own play button, always audible while playing (no picture)
+        if (mediaType === "audio") return addInput({ name, type: "audiofile", sourceId: path, loop: false, playing: false, audioFollow: false }, false)
         const type = mediaType === "video" ? "video" : "image"
-        addInput({ name: removeExtension(getFileName(path)), type, sourceId: path, loop: true }, false)
+        addInput({ name, type, sourceId: path, loop: true }, false)
     })
+}
+
+/** play / pause an audio file input */
+export function toggleAudioFile(id: string, playing?: boolean) {
+    const input = getInput(id)
+    if (!input || input.type !== "audiofile") return
+    updateInput(id, { playing: playing ?? !input.playing })
 }
 
 export function addGuest(name = "") {
@@ -234,6 +244,8 @@ export function setMixerOption(patch: Partial<Pick<MixerState, "replaySeconds" |
 // ----- SWITCHING -----
 
 export function setPreview(id: string | null) {
+    // audio files have no picture: number keys / clicks play or pause them instead
+    if (getInput(id)?.type === "audiofile") return toggleAudioFile(id as string)
     mixer.update((a) => {
         a.previewId = id
         return a
@@ -298,6 +310,7 @@ export function quickPlay(id: string, withTransition = false) {
     if (get(outLocked)) return
     const input = getInput(id)
     if (!input) return
+    if (input.type === "audiofile") return toggleAudioFile(id)
     if (withTransition) startAuto(input, false)
     else commit(input, false)
 }

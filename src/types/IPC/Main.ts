@@ -130,6 +130,7 @@ export enum Main {
     RECORDER = "RECORDER",
     MIXER_ISO_CHUNK = "MIXER_ISO_CHUNK",
     MIXER_SAVE_REPLAY = "MIXER_SAVE_REPLAY",
+    OFFICE_TO_PDF = "OFFICE_TO_PDF",
     RESTORE = "RESTORE",
     SYSTEM_OPEN = "SYSTEM_OPEN",
     LOCATE_MEDIA_FILE = "LOCATE_MEDIA_FILE",
@@ -252,6 +253,7 @@ export interface MainSendPayloads {
     [Main.RECORDER]: { blob: ArrayBuffer; name: string; path?: string }
     [Main.MIXER_ISO_CHUNK]: { id: string; name: string; data: ArrayBuffer; done?: boolean; folder?: string }
     [Main.MIXER_SAVE_REPLAY]: { name: string; extension: string; segments: ArrayBuffer[]; folder?: string }
+    [Main.OFFICE_TO_PDF]: { paths: string[] }
     [Main.SYSTEM_OPEN]: string
 
     [Main.LOCATE_MEDIA_FILE]: { filePath: string; folders: string[] }
@@ -315,6 +317,7 @@ export interface MainSendPayloads {
 export interface MainReturnPayloads {
     [Main.MIXER_ISO_CHUNK]: string
     [Main.MIXER_SAVE_REPLAY]: Promise<{ path: string; error?: string }>
+    [Main.OFFICE_TO_PDF]: Promise<{ pdfs: string[]; failed: string[] }>
     // DEV
     [Main.IS_DEV]: boolean
     [Main.GET_CACHE_PATH]: string

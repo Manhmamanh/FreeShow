@@ -8,7 +8,7 @@
     import { dictionary, special } from "../../stores"
     import { translateText } from "../../utils/language"
     import { destroy, receive, send } from "../../utils/request"
-    import { mediaExtensions } from "../../values/extensions"
+    import { audioExtensions, mediaExtensions } from "../../values/extensions"
     import Icon from "../helpers/Icon.svelte"
     import MediaPicker from "../inputs/MediaPicker.svelte"
     import { addGuest, addInput, addMediaFiles, mixer } from "./mixer"
@@ -80,11 +80,17 @@
                 dispatch("close")
             }}><Icon id="people" size={1} white /> {t("mixer.guest")}</button
         >
-        <MediaPicker id="mixer_add_media" title={t("mixer.media_file")} filter={{ name: "Media files", extensions: mediaExtensions }} multiple dark={false} center={false} on:picked={(e) => addMediaFiles(Array.isArray(e.detail) ? e.detail : [e.detail])}>
+        <MediaPicker id="mixer_add_media" title={t("mixer.media_file")} filter={{ name: "Media / audio files", extensions: [...mediaExtensions, ...audioExtensions] }} multiple dark={false} center={false} on:picked={(e) => addMediaFiles(Array.isArray(e.detail) ? e.detail : [e.detail])}>
             <Icon id="media" size={1} white />
             <span style="margin-inline-start: 6px;">{t("mixer.media_file")}</span>
         </MediaPicker>
     </div>
+
+    {#if !kind}
+        <div class="sources">
+            <p class="hint">{t("mixer.office_hint")}</p>
+        </div>
+    {/if}
 
     {#if kind}
         <div class="sources">

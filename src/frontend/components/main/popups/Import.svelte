@@ -63,7 +63,7 @@
 
     const powerpoint_options = [
         { name: "info.slides", description: "Imperfect formatting.", icon: "txt", click: pptText },
-        { name: "PDF", description: `Requires LibreOffice${$os.platform === "linux" ? "" : " or PowerPoint"} installed.`, icon: "pdf", click: convertToPdf },
+        { name: "PDF", description: `PowerPoint, Keynote, Word, Excel → PDF. Requires LibreOffice${$os.platform === "darwin" ? ", Keynote/Pages/Numbers" : ""}${$os.platform === "linux" ? "" : " or Microsoft Office"}.`, icon: "pdf", click: convertToPdf },
         { name: "PDF (Online)", description: "Requires network connection, and manual steps.", icon: "pdf", click: onlineConvert },
         { name: "Controller (Deprecated)", description: "Requires PowerPoint/Keynote installed. Useful for live streams, but buggy.", icon: "powerkey", click: pptController }
     ]
