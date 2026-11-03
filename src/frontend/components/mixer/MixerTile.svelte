@@ -10,6 +10,7 @@
     import type { MixerInput, MixerPip } from "../../../types/Mixer"
     import Icon from "../helpers/Icon.svelte"
     import { assignPipSlot, cut, PIP_SLOTS, quickPlay, removeInput, renameInput, setPreview, toggleAudioFile, updateInput } from "./mixer"
+    import { isFxActive } from "./mixerFx"
     import MixerSource from "./output/MixerSource.svelte"
 
     export let input: MixerInput
@@ -52,6 +53,9 @@
             <span class="name" title={input.name} on:dblclick={() => (editing = true)}>{input.name}</span>
         {/if}
         {#if isRecording}<span class="rec">REC</span>{/if}
+        {#if !isAudioFile && input.type !== "audio"}
+            <button class="fx" class:on={isFxActive(input.fx)} title="FX / Key" on:click={() => dispatch("fx")}>{isFxActive(input.fx) ? "✦ FX" : "FX"}</button>
+        {/if}
         <button class="close" title="✕" disabled={isProgram} on:click={() => removeInput(input.id)}>✕</button>
     </div>
 
@@ -299,5 +303,20 @@
     }
     .ctl.play {
         flex: 2;
+    }
+
+    .fx {
+        border: 1px solid rgb(255 255 255 / 0.3);
+        border-radius: 3px;
+        background: rgb(0 0 0 / 0.2);
+        color: white;
+        font-size: 0.75em;
+        font-weight: 800;
+        padding: 0 4px;
+        cursor: pointer;
+    }
+    .fx.on {
+        background: linear-gradient(90deg, #2f80ed, #00b4ff);
+        border-color: transparent;
     }
 </style>

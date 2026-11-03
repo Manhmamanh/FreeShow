@@ -52,7 +52,7 @@
         {/each}
 
         {#each data.pips || [] as pip (pip.id)}
-            <div class="pip" transition:fade={{ duration: mirror ? 0 : 300 }} style="left: {pip.x}%;top: {pip.y}%;width: {pip.w}%;height: {pip.h}%;border-radius: {pip.radius / 19.2}cqw;border: {pip.border / 19.2}cqw solid {pip.borderColor || 'white'};">
+            <div class="pip" transition:fade={{ duration: mirror ? 0 : 300 }} style="left: {pip.x}%;top: {pip.y}%;width: {pip.w}%;height: {pip.h}%;border-radius: {pip.radius / 19.2}cqw;border: {pip.border / 19.2}cqw solid {pip.borderColor || 'white'};{pip.input.fx?.chroma?.enabled ? 'background-color: transparent;' : ''}">
                 <MixerSource input={pip.input} {outputId} {mirror} fit={pip.fit || "cover"} gain={getInputGain(pip.input, data, progress)} />
             </div>
         {/each}

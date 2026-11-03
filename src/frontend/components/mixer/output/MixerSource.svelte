@@ -12,6 +12,8 @@
     import Camera from "../../output/Camera.svelte"
     import Window from "../../output/Window.svelte"
     import { guestVideo } from "../guestReceiver"
+    import { cssFilter, isFxActive } from "../mixerFx"
+    import MixerFxCanvas from "./MixerFxCanvas.svelte"
     import { getGuestViewUrl } from "../mixerLive"
 
     export let input: MixerInput
@@ -27,6 +29,14 @@
 
     let video: HTMLVideoElement | null = null
     $: if (video) video.playbackRate = rate
+
+    // ----- picture filters -----
+    let sourceEl: HTMLDivElement | null = null
+    let fxFailed = false
+    $: canFx = input.type !== "audio" && input.type !== "audiofile" && !(input.type === "guest" && input.guestMode === "webview")
+    // thumbnails (many at once) and machines without WebGL2 use cheap CSS filters
+    $: useGl = canFx && !thumbnail && !fxFailed && isFxActive(input.fx)
+    $: filterStyle = canFx && !useGl ? cssFilter(input.fx) : ""
 
     // ----- guest webview -----
     let webview: any = null
@@ -74,7 +84,7 @@
     })
 </script>
 
-<div class="source" class:cover={fit === "cover"}>
+<div class="source" class:cover={fit === "cover"} class:fxOn={useGl} bind:this={sourceEl} style={filterStyle ? `filter: ${filterStyle};` : ""}>
     {#if input.type === "camera"}
         <Camera id={input.sourceId} groupId={input.cameraGroup || ""} class="media" style="width: 100%;height: 100%;object-fit: {fit};" />
     {:else if input.type === "video" || input.type === "replay"}
@@ -110,6 +120,9 @@
             <div class="icon"><Icon id={input.type === "audiofile" ? "music" : "microphone"} size={2.5} white /></div>
         {/if}
     {/if}
+    {#if useGl && input.fx}
+        <MixerFxCanvas container={sourceEl} fx={input.fx} {fit} bind:failed={fxFailed} />
+    {/if}
 </div>
 
 <style>
@@ -144,5 +157,10 @@
 
     .icon {
         opacity: 0.6;
+    }
+
+    /* filtered picture is drawn by MixerFxCanvas; keep the original playing but invisible */
+    .source.fxOn > :global(:not(.mixerFx)) {
+        opacity: 0;
     }
 </style>

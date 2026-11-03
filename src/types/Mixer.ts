@@ -35,6 +35,20 @@ export interface MixerInput {
 
     // recording (camera inputs)
     replayBuffer?: boolean // keep the last seconds in memory for instant replay
+
+    // picture filters (chroma key, colour, LUT)
+    fx?: MixerFx
+}
+
+export interface MixerFx {
+    chroma?: { enabled: boolean; color: string; similarity: number; smoothness: number; spill: number }
+    brightness?: number // -1..1 (0)
+    contrast?: number // 0..2 (1)
+    saturation?: number // 0..2 (1)
+    gamma?: number // 0.2..3 (1)
+    hue?: number // -180..180 degrees (0)
+    temperature?: number // -1..1 (0) cold..warm
+    lut?: { path: string; intensity: number } // .cube file
 }
 
 export type MixerTransitionType = "fade" | "crossfade" | "wipe" | "slide" | "push" | "scale" | "blur" | "fly" | "spin" | "none"

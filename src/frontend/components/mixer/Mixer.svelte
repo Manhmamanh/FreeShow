@@ -15,6 +15,7 @@
     import MixerAddInput from "./MixerAddInput.svelte"
     import MixerAudioPanel from "./MixerAudioPanel.svelte"
     import { startMixerAudio } from "./mixerAudio"
+    import MixerFxPanel from "./MixerFxPanel.svelte"
     import MixerGuestPanel from "./MixerGuestPanel.svelte"
     import MixerMonitor from "./MixerMonitor.svelte"
     import MixerPipPanel from "./MixerPipPanel.svelte"
@@ -64,7 +65,12 @@
     }
 
     // ----- panels -----
-    type Dock = "" | "pip" | "record" | "guest"
+    type Dock = "" | "pip" | "record" | "guest" | "fx"
+    let fxInputId = ""
+    function openFx(id: string) {
+        fxInputId = id
+        dock = "fx"
+    }
     let dock: Dock = ""
     let addOpen = false
     let liveThumbnails = true
@@ -175,7 +181,7 @@
         <div class="inputs">
             <div class="grid">
                 {#each $mixer.inputs as input, index (input.id)}
-                    <MixerTile {input} {index} live={liveThumbnails} isPreview={$mixer.previewId === input.id} isProgram={$mixer.programId === input.id} pips={$mixer.pips} isRecording={!!$isoRecording[input.id]} />
+                    <MixerTile {input} {index} live={liveThumbnails} isPreview={$mixer.previewId === input.id} isProgram={$mixer.programId === input.id} pips={$mixer.pips} isRecording={!!$isoRecording[input.id]} on:fx={() => openFx(input.id)} />
                 {:else}
                     <button class="emptyAdd" on:click|stopPropagation={() => (addOpen = true)}>
                         <Icon id="add" size={2} white />
@@ -193,7 +199,7 @@
     {#if dock}
         <section class="dock">
             <div class="dockHead">
-                <span>{dock === "pip" ? "PiP / LAYOUT" : dock === "record" ? "REPLAY & ISO" : translateText("mixer.tab_guest", $dictionary).toUpperCase()}</span>
+                <span>{dock === "pip" ? "PiP / LAYOUT" : dock === "record" ? "REPLAY & ISO" : dock === "fx" ? "FX / KEY" : translateText("mixer.tab_guest", $dictionary).toUpperCase()}</span>
                 <button class="x" on:click={() => (dock = "")}>✕</button>
             </div>
             <div class="dockBody">
@@ -203,6 +209,8 @@
                     <MixerRecordPanel />
                 {:else if dock === "guest"}
                     <MixerGuestPanel />
+                {:else if dock === "fx"}
+                    <MixerFxPanel bind:inputId={fxInputId} />
                 {/if}
             </div>
         </section>
@@ -216,6 +224,7 @@
             ><Icon id="history" size={0.85} white /> Replay & ISO {#if isoActive}<span class="dot" />{/if}</button
         >
         <button class="btn" class:active={dock === "pip"} on:click={() => toggleDock("pip")}><Icon id="fullscreen" size={0.85} white /> PiP / Layout</button>
+        <button class="btn" class:active={dock === "fx"} on:click={() => toggleDock("fx")}>🎨 FX / Key</button>
         <button class="btn" class:active={dock === "guest"} on:click={() => toggleDock("guest")}><Icon id="people" size={0.85} white /> {translateText("mixer.tab_guest", $dictionary)}</button>
         <div class="spacer" />
         <label class="check"><input type="checkbox" bind:checked={liveThumbnails} /> {translateText("mixer.live_thumbnails", $dictionary)}</label>

@@ -41,6 +41,7 @@
 | **ISO** | Ghi riêng từng camera thành file riêng, kèm micro đi kèm. Ghi dần xuống ổ đĩa nên không đầy RAM | Tab **Replay & ISO** |
 | Ghi Program | Ghi hình đầu ra gồm slide, overlay, âm thanh (dùng chức năng ghi output có sẵn của FreeShow) | Tab **Replay & ISO** |
 | **Khách mời** | Tạo link và mã QR, khách mở bằng trình duyệt điện thoại/laptop. Hình khách thành một nguồn, chỉnh được âm lượng | Tab **Khách mời** |
+| **FX / Key** | **Chroma key** (phông xanh lá/xanh dương, độ tương đồng, độ mềm cạnh, khử ám màu), **chỉnh màu** (sáng, tương phản, bão hòa, gamma, tông màu, nhiệt độ màu), **LUT 3D .cube** (có cường độ). Chạy bằng shader WebGL2, hiện trên Preview, Program, output, NDI và file ghi | Nút **🎨 FX / Key** ở thanh dưới, hoặc nút **FX** trên ô nguồn |
 | Multiview | Hình thu nhỏ trực tiếp, tally: đỏ = PGM, xanh = PVW, cam = PiP, ● REC | Bấm = Preview, bấm đúp = lên thẳng Program |
 | Phím tắt | `1–9` Preview, `Shift+1–9` lên thẳng Program, `Space`/`Enter` AUTO, `C` CUT, `B` FTB, `R` REPLAY, `←`/`→` chuyển slide | Chỉ có tác dụng khi đang ở trang Mixer. Mở trang Mixer: phím `6` |
 
@@ -100,6 +101,12 @@ npm start
 1. Tab **Replay & ISO** → bật BUFFER cho các camera.
 2. Có pha hay: bấm `R` → clip tự xuất hiện ở Preview → `Space` để phát chậm.
 3. Clip hết thì tự quay về camera trước (bỏ tick nếu muốn tự chuyển).
+
+**Xóa phông (green screen)**
+1. Thêm camera quay người trước phông xanh, và một video hoặc ảnh làm nền.
+2. Nút **FX** trên ô camera → bật **Chroma key** → chọn **Phông xanh lá** → kéo **Độ tương đồng** tới khi phông biến mất, **Độ mềm cạnh** cho viền mịn, **Khử ám màu** để bỏ ánh xanh trên tóc và vai.
+3. Đưa video nền lên **Program**. Tab **PiP** → thêm PiP với camera → chọn vị trí **⛶** (toàn màn hình) → ON AIR.
+4. Ô thu nhỏ ở multiview vẫn hiện phông xanh (cho nhẹ máy). Phải nhìn **Preview/Program** để thấy kết quả xóa phông.
 
 **Ghi để dựng lại sau**: bấm **Ghi tất cả camera** (ISO) và **Ghi Program** cùng lúc. File nằm trong `Recordings/Mixer ISO`.
 
