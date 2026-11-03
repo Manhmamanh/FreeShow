@@ -3,10 +3,9 @@
     import { onDestroy } from "svelte"
     import { activeRecording, dictionary } from "../../stores"
     import { translateText } from "../../utils/language"
-    import { startOutputRecording, stopMediaRecorder } from "../drawer/live/recorder"
     import Icon from "../helpers/Icon.svelte"
-    import { getMonitorOutputId, mixer, playReplay, removeInput, replayAutoReturn, setMixerOption, setPreview } from "./mixer"
-    import { captureReplay, isoRecording, replayBuffers, replayBusy, setReplayBuffer, startIso, stopIso } from "./mixerRecorder"
+    import { mixer, playReplay, removeInput, replayAutoReturn, setMixerOption, setPreview } from "./mixer"
+    import { captureReplay, isoRecording, replayBuffers, replayBusy, setReplayBuffer, startIso, stopIso, toggleProgramRecording } from "./mixerRecorder"
 
     $: cameras = $mixer.inputs.filter((i) => i.type === "camera")
     $: replays = $mixer.inputs.filter((i) => i.type === "replay").reverse()
@@ -21,10 +20,6 @@
     }
 
     $: programRecording = !!$activeRecording?.isOutput
-    function toggleProgramRecording() {
-        if (programRecording) stopMediaRecorder()
-        else startOutputRecording(getMonitorOutputId())
-    }
 
     const rates = [0.25, 0.5, 0.75, 1]
     const lengths = [5, 8, 10, 15, 20, 30]
@@ -101,7 +96,7 @@
 
         <h4 style="margin-top: 14px;"><Icon id="record" size={0.9} white /> Program</h4>
         <p class="hint">{translateText("mixer.program_record_hint", $dictionary)}</p>
-        <button class="big" class:recording={programRecording} on:click={toggleProgramRecording}>
+        <button class="big" class:recording={programRecording} on:click={() => toggleProgramRecording()}>
             {programRecording ? `■ ${translateText("mixer.stop_program_record", $dictionary)}` : `● ${translateText("mixer.start_program_record", $dictionary)}`}
         </button>
     </section>

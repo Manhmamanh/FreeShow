@@ -916,7 +916,11 @@
         "guest_mode_hint": "Tắt (khuyên dùng): WebRTC trực tiếp, chạy được với NDI/RTMP và bàn trộn âm thanh. Bật: hiện trang VDO.Ninja, chỉ dùng khi chế độ trực tiếp không kết nối được.",
         "converting_documents": "Đang chuyển tài liệu sang PDF…",
         "convert_failed": "Một số tài liệu chưa chuyển được sang PDF. Hãy cài Keynote, Pages, Numbers (miễn phí trên App Store), LibreOffice (miễn phí) hoặc Microsoft Office rồi thử lại.",
-        "office_hint": "PDF, PowerPoint, Keynote, Word, Excel: kéo thả vào dự án ở trang Trình chiếu (tự chuyển sang PDF), rồi chiếu như slide, nằm trên hình của Mixer."
+        "office_hint": "PDF, PowerPoint, Keynote, Word, Excel: kéo thả vào dự án ở trang Trình chiếu (tự chuyển sang PDF), rồi chiếu như slide, nằm trên hình của Mixer.",
+        "remove_pip": "Xóa",
+        "remove_all_pips": "Xóa tất cả PiP",
+        "rec_no_output": "Chưa có output để ghi. Tạo trong Cài đặt → Đầu ra.",
+        "rec_not_presenting": "Hãy bật trình chiếu trước (nút Trình bày hoặc Cmd+O): bộ ghi ghi lại đúng hình đang hiện trên output."
     },
     "stage": {
         "slide": "Slide",

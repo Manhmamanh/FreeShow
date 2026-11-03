@@ -9,7 +9,6 @@
     import { MIXER_BLACK_ID } from "../../../types/Mixer"
     import { activePage, activeRecording, dictionary, outLocked, outputs, settingsTab } from "../../stores"
     import { translateText } from "../../utils/language"
-    import { startOutputRecording, stopMediaRecorder } from "../drawer/live/recorder"
     import Icon from "../helpers/Icon.svelte"
     import PreviewOutput from "../output/preview/PreviewOutput.svelte"
     import { auto, cut, fadeToBlack, getMonitorOutputId, mixer, mixerTransitioning, PIP_SLOTS, quickPlay, setTargetOutput, setTransitionPreset, syncProgramWithOutput, togglePipSlot } from "./mixer"
@@ -20,7 +19,7 @@
     import MixerMonitor from "./MixerMonitor.svelte"
     import MixerPipPanel from "./MixerPipPanel.svelte"
     import MixerRecordPanel from "./MixerRecordPanel.svelte"
-    import { captureReplay, isoRecording, replayBuffers, replayBusy, startIso, stopIso } from "./mixerRecorder"
+    import { captureReplay, isoRecording, replayBuffers, replayBusy, startIso, stopIso, toggleProgramRecording } from "./mixerRecorder"
     import MixerTBar from "./MixerTBar.svelte"
     import MixerTile from "./MixerTile.svelte"
 
@@ -45,10 +44,7 @@
     $: ndiOn = !!monitorOutput?.ndi
     $: recording = !!$activeRecording?.isOutput
     $: isoActive = Object.keys($isoRecording).length > 0
-    function toggleRecord() {
-        if (recording) stopMediaRecorder()
-        else startOutputRecording(monitorOutputId)
-    }
+    const toggleRecord = () => toggleProgramRecording()
     function openOutputSettings() {
         settingsTab.set("display_settings")
         activePage.set("settings")

@@ -491,6 +491,15 @@ export function removePip(id: string) {
     writeOut(() => ({ pips: getActivePips() }))
 }
 
+/** removes every PiP (and takes them off air) */
+export function removeAllPips() {
+    mixer.update((a) => {
+        a.pips = []
+        return a
+    })
+    writeOut(() => ({ pips: [] }))
+}
+
 export function movePip(id: string, direction: -1 | 1) {
     mixer.update((a) => {
         const index = a.pips.findIndex((p) => p.id === id)

@@ -8,9 +8,12 @@ import { Main } from "../../../types/IPC/Main"
 import type { MixerInput } from "../../../types/Mixer"
 import { requestMain, sendMain } from "../../IPC/main"
 import { cameraManager } from "../../media/cameraManager"
-import { special } from "../../stores"
+import { activePopup, activeRecording, alertMessage, outputDisplay, outputs, special } from "../../stores"
 import { newToast } from "../../utils/common"
-import { addInput, getOutMixer, mixer, mixerHotkeys, setPreview } from "./mixer"
+import { translateText } from "../../utils/language"
+import { startOutputRecording, stopMediaRecorder } from "../drawer/live/recorder"
+import { checkFFmpeg } from "../helpers/output"
+import { addInput, getMonitorOutputId, getOutMixer, mixer, mixerHotkeys, setPreview } from "./mixer"
 
 const SEGMENT_MS = 2000
 const MAX_REPLAY_SECONDS = 30
@@ -57,6 +60,34 @@ async function openStream(input: MixerInput): Promise<{ stream: MediaStream; rel
             cameraManager.stopTracks(camera, input.sourceId)
         }
     }
+}
+
+// ----- PROGRAM RECORDING -----
+
+export const isProgramRecording = () => !!get(activeRecording)?.isOutput
+
+function alertUser(key: string) {
+    alertMessage.set(translateText(key))
+    activePopup.set("alert")
+}
+
+/** REC button: records the program output (FreeShow's output recorder, encoded with FFmpeg) */
+export async function toggleProgramRecording() {
+    if (isProgramRecording()) {
+        await stopMediaRecorder()
+        return
+    }
+    // another recording (e.g. a camera/screen recording from the drawer) is running
+    if (get(activeRecording)) await stopMediaRecorder()
+
+    const outputId = getMonitorOutputId()
+    if (!outputId || !get(outputs)[outputId]) return alertUser("mixer.rec_no_output")
+    // the recorder captures the output window, so it has to be shown
+    if (!get(outputDisplay)) return alertUser("mixer.rec_not_presenting")
+    // the encoder needs FFmpeg (asks to download it the first time)
+    if (!(await checkFFmpeg())) return
+
+    await startOutputRecording(outputId)
 }
 
 // ----- ISO -----
@@ -191,6 +222,8 @@ export async function setReplayBuffer(inputId: string, enabled: boolean) {
     if (buffers.has(inputId)) return
     const input = get(mixer).inputs.find((i) => i.id === inputId)
     if (!input) return
+    // replay clips are joined with FFmpeg: offer to download it now instead of failing at the first replay
+    await checkFFmpeg()
     const opened = await openStream(input)
     if (!opened) return
 

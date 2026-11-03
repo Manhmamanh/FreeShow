@@ -1417,7 +1417,11 @@
         "guest_mode_hint": "Off (recommended): direct WebRTC, works with NDI/RTMP and the audio mixer. On: shows the VDO.Ninja page itself, use only if direct mode does not connect.",
         "converting_documents": "Converting documents to PDF…",
         "convert_failed": "Some documents could not be converted to PDF. Install Keynote, Pages and Numbers (free in the App Store), LibreOffice (free) or Microsoft Office, then try again.",
-        "office_hint": "PDF, PowerPoint, Keynote, Word, Excel: drag them into a project on the Show page (they are converted to PDF automatically), then show them over the mixer like any slide."
+        "office_hint": "PDF, PowerPoint, Keynote, Word, Excel: drag them into a project on the Show page (they are converted to PDF automatically), then show them over the mixer like any slide.",
+        "remove_pip": "Remove",
+        "remove_all_pips": "Remove all PiP",
+        "rec_no_output": "There is no output to record. Create one in Settings → Outputs.",
+        "rec_not_presenting": "Turn on the presentation first (Present button or Cmd+O): the recorder records what the output shows."
     },
     "stage": {
         "stage_layout": "Stage layout",

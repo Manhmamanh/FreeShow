@@ -3,7 +3,7 @@
     import { dictionary } from "../../stores"
     import { translateText } from "../../utils/language"
     import Icon from "../helpers/Icon.svelte"
-    import { addPip, getPipPreset, mixer, movePip, PIP_PRESETS, removePip, togglePip, updatePip, type PipPreset } from "./mixer"
+    import { addPip, getPipPreset, mixer, movePip, PIP_PRESETS, removeAllPips, removePip, togglePip, updatePip, type PipPreset } from "./mixer"
 
     $: videoInputs = $mixer.inputs.filter((i) => i.type !== "audio" && i.type !== "audiofile")
     let newInputId = ""
@@ -34,6 +34,10 @@
     </select>
     <button class="btn" disabled={!newInputId} on:click={() => addPip(newInputId, "br")}><Icon id="add" size={0.9} white /> {translateText("mixer.add_pip", $dictionary)}</button>
     <button class="btn" disabled={videoInputs.length < 2} on:click={splitScreen} title={translateText("mixer.split_hint", $dictionary)}>◧◨ {translateText("mixer.split_screen", $dictionary)}</button>
+    <span class="spacer" />
+    {#if $mixer.pips.length}
+        <button class="btn danger" on:click={removeAllPips}><Icon id="delete" size={0.9} white /> {translateText("mixer.remove_all_pips", $dictionary)} ({$mixer.pips.length})</button>
+    {/if}
 </div>
 
 <div class="pips">
@@ -49,7 +53,7 @@
                 </select>
                 <button class="icon" title="↑" disabled={index === 0} on:click={() => movePip(pip.id, -1)}><Icon id="up" size={0.9} white /></button>
                 <button class="icon" title="↓" disabled={index === $mixer.pips.length - 1} on:click={() => movePip(pip.id, 1)}><Icon id="down" size={0.9} white /></button>
-                <button class="icon red" title={translateText("actions.remove", $dictionary)} on:click={() => removePip(pip.id)}><Icon id="delete" size={0.9} white /></button>
+                <button class="remove" title={translateText("actions.remove", $dictionary)} on:click={() => removePip(pip.id)}><Icon id="delete" size={0.85} white /> {translateText("mixer.remove_pip", $dictionary)}</button>
             </div>
 
             {#if !input}<p class="warn">{translateText("mixer.pip_missing", $dictionary)}</p>{/if}
@@ -161,11 +165,44 @@
     .icon:hover {
         background-color: var(--hover);
     }
-    .icon.red:hover {
-        background-color: rgb(229 36 59 / 0.4);
-    }
     .icon:disabled {
         opacity: 0.3;
+    }
+    .icon :global(svg),
+    .remove :global(svg),
+    .btn :global(svg) {
+        fill: #eaf2ff;
+    }
+    .remove {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border: 1px solid #e5293f;
+        border-radius: 4px;
+        background-color: rgb(229 41 63 / 0.15);
+        color: #ff8b98;
+        font-family: inherit;
+        font-size: 0.78em;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .remove:hover {
+        background-color: #e5293f;
+        color: white;
+    }
+    .btn.danger {
+        border: 1px solid #e5293f;
+        background-color: rgb(229 41 63 / 0.15);
+        color: #ff8b98;
+    }
+    .btn.danger:hover {
+        background-color: #e5293f;
+        color: white;
+    }
+    .spacer {
+        flex: 1;
     }
 
     .presets {
