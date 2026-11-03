@@ -871,7 +871,7 @@
         "linked_mic": "Micro đi kèm camera này",
         "no_mic": "Không có micro",
         "no_audio_inputs": "Chưa có nguồn có tiếng.",
-        "audio_hint": "Tiếng đi qua đầu ra âm thanh của FreeShow (loa, NDI, RTMP, ghi hình). Tiếng của khách mời phát từ cửa sổ output.",
+        "audio_hint": "Tiếng đi qua đầu ra âm thanh của FreeShow (loa, NDI, RTMP, ghi hình). Khách mời cũng vậy, trừ khi bật chế độ tương thích.",
         "add_pip": "Thêm PiP",
         "split_screen": "Chia đôi màn hình",
         "split_hint": "Hai nguồn hình đầu tiên đặt cạnh nhau",
@@ -907,7 +907,13 @@
         "new_link_hint": "Tạo link mới (link cũ hết tác dụng)",
         "no_guests": "Chưa có khách mời.",
         "guest_privacy": "Khách kết nối qua VDO.Ninja (miễn phí, mã nguồn mở, WebRTC ngang hàng). Cần có Internet. Ai có link đều gửi được hình vào nguồn này, nên chỉ gửi link cho đúng khách.",
-        "record": "Ghi hình"
+        "record": "Ghi hình",
+        "guest_connecting": "Đang kết nối",
+        "guest_waiting": "Đang chờ khách",
+        "guest_live": "Đang lên hình",
+        "guest_error": "Lỗi kết nối",
+        "guest_webview_mode": "Chế độ tương thích (webview)",
+        "guest_mode_hint": "Tắt (khuyên dùng): WebRTC trực tiếp, chạy được với NDI/RTMP và bàn trộn âm thanh. Bật: hiện trang VDO.Ninja, chỉ dùng khi chế độ trực tiếp không kết nối được."
     },
     "stage": {
         "slide": "Slide",

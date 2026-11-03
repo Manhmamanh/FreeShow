@@ -1,4 +1,4 @@
-name: Mixer macOS build
+name: Haidangshow macOS build
 
 # Builds an ad-hoc signed (not notarized) macOS .dmg of the Mixer branch for testing.
 # The .dmg files are attached to the "mixer-latest" pre-release (Releases page) and to the run's Artifacts.
@@ -85,7 +85,7 @@ jobs:
       - name: Upload .dmg (artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: FreeShow-Mixer-macOS-${{ matrix.arch }}
+          name: Haidangshow-macOS-${{ matrix.arch }}
           path: dist/*.dmg
           if-no-files-found: error
           retention-days: 14
@@ -96,14 +96,17 @@ jobs:
         run: |
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" --prerelease --target "$GITHUB_SHA" \
-              --title "FreeShow Mixer (test build)" \
-              --notes "Bản build thử của nhánh Mixer, chưa notarize. Sau khi cài, chạy: xattr -cr /Applications/FreeShow.app" || true
+              --title "Haidangshow (test build)" \
+              --notes "Bản build thử Haidangshow (dựa trên FreeShow, GPL-3.0), chưa notarize. Sau khi cài, chạy: xattr -cr /Applications/Haidangshow.app" || true
           fi
           for f in dist/*.dmg; do
-            target="FreeShow-Mixer-${{ matrix.arch }}.dmg"
+            target="Haidangshow-${{ matrix.arch }}.dmg"
             cp "$f" "$target"
             gh release upload "$RELEASE_TAG" "$target" --clobber
           done
+          # files of the old name (before the Haidangshow rename) would only confuse
+          gh release delete-asset "$RELEASE_TAG" "FreeShow-Mixer-${{ matrix.arch }}.dmg" -y 2>/dev/null || true
+          gh release edit "$RELEASE_TAG" --title "Haidangshow (test build)" --notes "Bản build thử Haidangshow (dựa trên FreeShow, GPL-3.0), chưa notarize. Sau khi cài, chạy: xattr -cr /Applications/Haidangshow.app" || true
 
       - name: Report log tail as annotations
         if: failure()

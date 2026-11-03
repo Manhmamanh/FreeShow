@@ -6,7 +6,10 @@
     import { translateText } from "../../utils/language"
     import Icon from "../helpers/Icon.svelte"
     import { addGuest, mixer, removeInput, setPreview, updateInput } from "./mixer"
+    import { guestStates } from "./guestReceiver"
     import { getGuestInviteUrl, newGuestStreamId } from "./mixerLive"
+
+    const stateLabel = { connecting: "mixer.guest_connecting", waiting: "mixer.guest_waiting", live: "mixer.guest_live", error: "mixer.guest_error" }
 
     $: guests = $mixer.inputs.filter((i) => i.type === "guest")
 
@@ -42,8 +45,18 @@
         <div class="guest" class:onAir={$mixer.programId === guest.id}>
             <div class="qr">{@html qrSvg(link)}</div>
             <div class="info">
-                <input class="name" value={guest.name} on:change={(e) => updateInput(guest.id, { name: e.currentTarget.value || guest.name })} />
+                <div class="nameRow">
+                    <input class="name" value={guest.name} on:change={(e) => updateInput(guest.id, { name: e.currentTarget.value || guest.name })} />
+                    {#if guest.guestMode !== "webview"}
+                        {@const state = $guestStates[guest.sourceId] || "connecting"}
+                        <span class="state {state}">● {translateText(stateLabel[state], $dictionary)}</span>
+                    {/if}
+                </div>
                 <code title={link}>{link}</code>
+                <label class="mode" title={translateText("mixer.guest_mode_hint", $dictionary)}>
+                    <input type="checkbox" checked={guest.guestMode === "webview"} on:change={(e) => updateInput(guest.id, { guestMode: e.currentTarget.checked ? "webview" : "direct" })} />
+                    {translateText("mixer.guest_webview_mode", $dictionary)}
+                </label>
                 <div class="actions">
                     <button class="btn" on:click={() => copy(link)}><Icon id="copy" size={0.85} white /> {translateText("mixer.copy_link", $dictionary)}</button>
                     <button class="btn" on:click={() => setPreview(guest.id)}>PVW</button>
@@ -149,5 +162,38 @@
         display: flex;
         flex-wrap: wrap;
         gap: 4px;
+    }
+
+    .nameRow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .nameRow .name {
+        flex: 1;
+        min-width: 0;
+    }
+    .state {
+        font-size: 0.75em;
+        font-weight: 700;
+        white-space: nowrap;
+        color: #8b9cbb;
+    }
+    .state.live {
+        color: #1fae5c;
+    }
+    .state.waiting {
+        color: #f5a623;
+    }
+    .state.error {
+        color: #e5293f;
+    }
+    .mode {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78em;
+        opacity: 0.8;
+        cursor: pointer;
     }
 </style>

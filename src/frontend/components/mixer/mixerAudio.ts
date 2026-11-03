@@ -3,13 +3,14 @@
 // audio routing: speakers, NDI/OMT audio, RTMP streams and recordings.
 //  - video files: an audio element plays the file's sound while the input is on air (picture is drawn muted in the outputs)
 //  - audio inputs (microphones / interfaces) and microphones linked to a camera: getUserMedia streams
-//  - guests: their sound plays inside the guest webview in the output window (see MixerSource.svelte)
+//  - guests (direct WebRTC): the guest's audio track from guestReceiver.ts (webview guests play their own sound)
 
 import { get, writable } from "svelte/store"
 import type { MixerInput, OutMixer } from "../../../types/Mixer"
 import { AudioAnalyser } from "../../audio/audioAnalyser"
 import { outputs } from "../../stores"
 import { encodeFilePath } from "../helpers/media"
+import { acquireGuestStream, releaseGuestStream } from "./guestReceiver"
 import { getMonitorOutputId, mixer } from "./mixer"
 import { ease, getInputGain, getOnAirFactor, getProgress, mixerLiveAmount } from "./mixerLive"
 
@@ -20,6 +21,9 @@ type Source = {
     stream?: MediaStream
     deviceId?: string
     path?: string
+    guestId?: string // guest stream id (released on destroy)
+    guestStream?: MediaStream
+    onTrack?: () => void
     attached: boolean
     meter?: { ctx: AudioContext; analyser: AnalyserNode; data: Float32Array }
 }
@@ -30,6 +34,8 @@ const sources = new Map<string, Source>() // input id -> source
 export const mixerLevels = writable<{ [inputId: string]: number }>({})
 
 const sourceKey = (inputId: string) => `mixer_${inputId}`
+
+const isWebviewGuest = (input: MixerInput) => input.type === "guest" && input.guestMode === "webview"
 
 export const hasAudio = (input: MixerInput) => input.type === "video" || input.type === "audio" || input.type === "guest" || ((input.type === "camera" || input.type === "replay") && !!input.audioDeviceId)
 
@@ -58,12 +64,12 @@ function update() {
     // remove sources of deleted inputs / inputs without audio
     for (const [inputId] of sources) {
         const input = state.inputs.find((i) => i.id === inputId)
-        if (!input || !hasAudio(input) || input.type === "guest") destroySource(inputId)
+        if (!input || !hasAudio(input) || isWebviewGuest(input) || (sources.get(inputId)?.guestId && sources.get(inputId)?.guestId !== input.sourceId)) destroySource(inputId)
     }
 
     const onAir = new Set<string>()
     state.inputs.forEach((input) => {
-        if (!hasAudio(input) || input.type === "guest") return
+        if (!hasAudio(input) || isWebviewGuest(input)) return
         const factor = getOnAirFactor(input.id, out, 1) + getOnAirFactor(input.id, out, 0)
         const isOnAir = factor > 0
         if (isOnAir) onAir.add(input.id)
@@ -117,6 +123,40 @@ function ensureSource(input: MixerInput) {
         return
     }
 
+    // remote guest (direct WebRTC): its audio track goes through FreeShow's audio routing
+    if (input.type === "guest") {
+        if (existing) return
+        const stream = acquireGuestStream(input.sourceId)
+        const guestSource: Source = { key: sourceKey(input.id), kind: "stream", guestId: input.sourceId, attached: false }
+        // Chromium only feeds remote WebRTC audio to WebAudio while the stream is also played by a media element
+        const keepAlive = new Audio()
+        keepAlive.muted = true
+        keepAlive.srcObject = stream
+        keepAlive.play().catch(() => null)
+        guestSource.element = keepAlive
+        sources.set(input.id, guestSource)
+
+        let attachedTrack = ""
+        const attachAudio = async () => {
+            const track = stream.getAudioTracks()[0]
+            if (!track || track.id === attachedTrack || sources.get(input.id) !== guestSource) return
+            if (attachedTrack) AudioAnalyser.detach(guestSource.key)
+            attachedTrack = track.id
+            const audioOnly = new MediaStream([track])
+            guestSource.stream = audioOnly
+            await AudioAnalyser.attach(guestSource.key, audioOnly)
+            guestSource.attached = true
+            guestSource.meter?.ctx.close().catch(() => null)
+            guestSource.meter = createMeter(audioOnly)
+            updateGains(false)
+        }
+        guestSource.onTrack = attachAudio
+        guestSource.guestStream = stream
+        stream.addEventListener("mixertrack", attachAudio)
+        attachAudio()
+        return
+    }
+
     // microphone (audio input, or the mic linked to a camera/replay)
     const deviceId = input.type === "audio" ? input.sourceId : input.audioDeviceId || ""
     if (!deviceId) return
@@ -157,10 +197,17 @@ function destroySource(inputId: string) {
     }
     if (source.element) {
         source.element.pause()
+        source.element.srcObject = null
         source.element.removeAttribute("src")
         source.element.load()
     }
-    source.stream?.getTracks().forEach((t) => t.stop())
+    if (source.guestId) {
+        // guest tracks belong to the shared receiver, don't stop them here
+        if (source.onTrack) source.guestStream?.removeEventListener("mixertrack", source.onTrack)
+        releaseGuestStream(source.guestId)
+    } else {
+        source.stream?.getTracks().forEach((t) => t.stop())
+    }
     source.meter?.ctx.close().catch(() => null)
     mixerLevels.update((a) => {
         delete a[inputId]

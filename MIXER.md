@@ -1,6 +1,7 @@
-# FreeShow Mixer: bàn trộn hình kiểu vMix (bản thử nghiệm)
+# Haidangshow: trình chiếu và bàn trộn hình kiểu vMix (bản thử nghiệm)
 
-> Bản fork thử nghiệm của [ChurchApps/FreeShow](https://github.com/ChurchApps/FreeShow) (GPL-3.0).
+> **Haidangshow** là bản fork của [ChurchApps/FreeShow](https://github.com/ChurchApps/FreeShow) (GPL-3.0), thêm trang Mixer kiểu vMix.
+> Cài **song song** được với FreeShow gốc: tên app, `appId` (`app.haidangshow`), thư mục cài đặt và thư mục dữ liệu (`~/Documents/Haidangshow`) đều riêng.
 > Mục tiêu: dùng FreeShow trên **MacBook** như một bàn trộn hình trực tiếp, có Preview/Program, Cut/Auto/T-bar, hình trong hình (PiP), trộn âm thanh, replay, ghi ISO và khách mời từ xa. Toàn bộ tính năng trình chiếu lời và slide của FreeShow vẫn giữ nguyên.
 
 ---
@@ -49,24 +50,28 @@
 
 Trang tải: **https://github.com/Manhmamanh/FreeShow/releases/tag/mixer-latest**
 
+Link trực tiếp:
+- M1/M2/M3/M4: https://github.com/Manhmamanh/FreeShow/releases/download/mixer-latest/Haidangshow-arm64.dmg
+- Intel: https://github.com/Manhmamanh/FreeShow/releases/download/mixer-latest/Haidangshow-x64.dmg
+
 | Máy | File |
 |---|---|
-| M1/M2/M3/M4 | `FreeShow-Mixer-arm64.dmg` |
-| Intel | `FreeShow-Mixer-x64.dmg` |
+| M1/M2/M3/M4 | `Haidangshow-arm64.dmg` |
+| Intel | `Haidangshow-x64.dmg` |
 
 Mỗi lần đẩy code lên nhánh `feature/mixer-*`, GitHub Actions (`.github/workflows/mixer-mac.yml`) sẽ build lại và thay file trên trang Releases.
 
 Cài đặt:
-1. Mở file `.dmg`, kéo FreeShow vào Applications.
+1. Mở file `.dmg`, kéo Haidangshow vào Applications.
 2. Bản build thử chưa được Apple xác thực (notarize), nên chạy lệnh này một lần trước khi mở:
 
 ```bash
-xattr -cr /Applications/FreeShow.app
+xattr -cr /Applications/Haidangshow.app
 ```
 
 3. Mở app, cấp quyền **Camera, Micro, Screen Recording** khi được hỏi.
 
-> ⚠️ Bản này dùng chung dữ liệu với FreeShow gốc (`appId: app.freeshow`). Nếu máy đang dùng FreeShow cho sự kiện thật, sao lưu dữ liệu trước.
+> ℹ️ Haidangshow có dữ liệu riêng, không đụng tới FreeShow gốc. Muốn dùng lại bài hát/show từ FreeShow: copy thư mục `~/Documents/FreeShow` sang `~/Documents/Haidangshow` khi app đang tắt.
 > ⚠️ Workflow `release.yml` có sẵn của FreeShow tự chạy khi push lên `main`. Tắt workflow đó trước khi merge nhánh Mixer vào `main`.
 
 Chạy từ mã nguồn (cần Node.js ≥ 22.12 và Xcode Command Line Tools):
@@ -167,7 +172,7 @@ npm start
 | Giới hạn | Chi tiết | Hướng xử lý |
 |---|---|---|
 | **Chưa chạy thử trên Mac thật** | Môi trường build cloud không chạy được Electron có giao diện. Đã kiểm tra bằng: build production, svelte-check, eslint, 12 unit test, thử lệnh FFmpeg ghép replay | Chạy checklist ở mục 6 |
-| Tiếng khách mời phát từ cửa sổ output | Hình khách hiển thị trong webview của VDO.Ninja, không nối được vào bộ trộn âm thanh FreeShow | Muốn có tiếng khách trên livestream: bật "Desktop audio" trong cài đặt âm thanh FreeShow, hoặc nhận khách qua NDI |
+| Khách mời cần Internet, dùng máy chủ báo hiệu (signaling) công cộng của VDO.Ninja | Mặc định nhận **trực tiếp qua WebRTC** (SDK VDO.Ninja, MPL-2.0): hình là `<video>` thường nên lên được NDI/RTMP, tiếng đi qua bàn trộn âm thanh | Nếu không kết nối được, bật "Chế độ tương thích (webview)" cho khách đó |
 | Tiếng NDI/OMT chưa có fader riêng | Tiếng NDI do FreeShow xử lý riêng | Giai đoạn sau |
 | Replay và ISO chỉ áp dụng cho nguồn **camera** | NDI/màn hình/khách chưa ghi riêng được | Dùng Ghi Program, hoặc ghi ở thiết bị nguồn |
 | Đồng bộ tiếng–hình của video | Hình phát ở output, tiếng phát ở cửa sổ chính, cùng bắt đầu nhưng có thể lệch vài chục ms với video dài | Nên dùng cho clip ngắn hoặc nhạc nền |
@@ -181,3 +186,11 @@ npm start
 ## 8. Giấy phép
 
 FreeShow dùng giấy phép **GPL-3.0**, nên mọi bản phân phối của fork này **bắt buộc công khai mã nguồn** theo GPL-3.0. Nếu đổi tên hoặc thương hiệu, vẫn phải giữ ghi chú bản quyền gốc của ChurchApps. VDO.Ninja là dịch vụ bên thứ ba (mã nguồn mở, AGPL-3.0); app chỉ mở trang của dịch vụ này, không đóng gói mã của nó.
+
+---
+
+## 9. Ghi công
+
+- **FreeShow** © ChurchApps, GPL-3.0: https://github.com/ChurchApps/FreeShow. Haidangshow giữ nguyên giấy phép GPL-3.0 và file `LICENSE`.
+- **VDO.Ninja SDK** v1.6.2 © Steve Seguin, MPL-2.0: `public/vendor/vdoninja/` (không chỉnh sửa, kèm giấy phép). Haidangshow không liên kết hay được VDO.Ninja bảo trợ.
+- Haidangshow **tắt** tự cập nhật về FreeShow gốc và tắt gửi báo cáo lỗi (Sentry) về dự án gốc.

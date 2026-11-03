@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Haidangshow app icon: presentation screen + play + sharing waves, blue brand -->
+  <defs>
+    <linearGradient id="hd-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A2463"/>
+      <stop offset="0.5" stop-color="#1B5FD1"/>
+      <stop offset="1" stop-color="#22B5FF"/>
+    </linearGradient>
+    <radialGradient id="hd-glow" cx="0.3" cy="0.2" r="0.9">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="0.6" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hd-screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCEBFF"/>
+    </linearGradient>
+    <linearGradient id="hd-play" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22B5FF"/>
+      <stop offset="1" stop-color="#1B4FC4"/>
+    </linearGradient>
+    <filter id="hd-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#04123A" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#hd-bg)" filter="url(#hd-shadow)"/>
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#hd-glow)"/>
+
+  <!-- sharing / broadcast waves -->
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="36">
+    <path d="M 676 272 A 84 84 0 0 1 760 356" opacity="1"/>
+    <path d="M 676 202 A 154 154 0 0 1 830 356" opacity="0.75"/>
+  </g>
+  <circle cx="676" cy="356" r="26" fill="#FFFFFF"/>
+
+  <!-- presentation screen -->
+  <g filter="url(#hd-shadow)">
+    <rect x="212" y="330" width="456" height="300" rx="40" fill="url(#hd-screen)"/>
+    <path d="M 412 630 L 468 630 L 492 712 L 388 712 Z" fill="#EAF3FF"/>
+    <rect x="330" y="704" width="220" height="34" rx="17" fill="#FFFFFF"/>
+  </g>
+  <path d="M 398 412 L 398 548 Q 398 568 416 558 L 520 494 Q 536 480 520 466 L 416 402 Q 398 392 398 412 Z" fill="url(#hd-play)"/>
+</svg>

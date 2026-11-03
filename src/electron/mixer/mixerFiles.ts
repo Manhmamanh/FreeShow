@@ -35,13 +35,41 @@ export function mixerIsoChunk(data: { id: string; name: string; data: ArrayBuffe
 
     if (data.done) {
         openFiles.delete(data.id)
-        if (!isoFolderOpened) {
-            isoFolderOpened = true
-            openInSystem(path.dirname(filePath))
-        }
+        const done = filePath
+        finalizeIso(done).finally(() => {
+            if (!isoFolderOpened) {
+                isoFolderOpened = true
+                openInSystem(path.dirname(done))
+            }
+        })
     }
 
     return filePath
+}
+
+/** MediaRecorder writes fragmented MP4: remux (no re-encode) to a normal MP4 so QuickTime/Final Cut/Premiere open it */
+async function finalizeIso(file: string) {
+    if (!file.endsWith(".mp4") || !fs.existsSync(file)) return
+    const ffmpeg = await resolveFfmpegPath()
+    if (!ffmpeg) return
+
+    const temp = file.replace(/\.mp4$/, ".remux.mp4")
+    await new Promise<void>((resolve) => {
+        execFile(ffmpeg, ["-y", "-hide_banner", "-loglevel", "error", "-i", file, "-c", "copy", "-movflags", "+faststart", temp], { timeout: 10 * 60 * 1000 }, (err, _stdout, stderr) => {
+            if (err || !fs.existsSync(temp) || fs.statSync(temp).size === 0) {
+                // keep the original recording if anything goes wrong
+                console.error("[Mixer] ISO remux failed:", stderr || err)
+                try {
+                    if (fs.existsSync(temp)) fs.unlinkSync(temp)
+                } catch {
+                    // ignore
+                }
+            } else {
+                fs.renameSync(temp, file)
+            }
+            resolve()
+        })
+    })
 }
 
 // ----- REPLAY -----

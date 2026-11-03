@@ -1372,7 +1372,7 @@
         "linked_mic": "Microphone that belongs to this camera",
         "no_mic": "No microphone",
         "no_audio_inputs": "No inputs with sound yet.",
-        "audio_hint": "Sound goes through FreeShow's audio output (speakers, NDI, RTMP, recordings). Guest sound plays from the output window.",
+        "audio_hint": "Sound goes through FreeShow's audio output (speakers, NDI, RTMP, recordings). Guests too, unless they use compatibility mode.",
         "add_pip": "Add PiP",
         "split_screen": "Split screen",
         "split_hint": "Two first video inputs side by side",
@@ -1408,7 +1408,13 @@
         "new_link_hint": "New link (the old link stops working)",
         "no_guests": "No guests yet.",
         "guest_privacy": "Guests connect over VDO.Ninja (free, open source, peer-to-peer WebRTC). Internet is needed. Anyone with the link can send video to this input, so share it only with the guest.",
-        "record": "Record"
+        "record": "Record",
+        "guest_connecting": "Connecting",
+        "guest_waiting": "Waiting for guest",
+        "guest_live": "Live",
+        "guest_error": "Connection error",
+        "guest_webview_mode": "Compatibility mode (webview)",
+        "guest_mode_hint": "Off (recommended): direct WebRTC, works with NDI/RTMP and the audio mixer. On: shows the VDO.Ninja page itself, use only if direct mode does not connect."
     },
     "stage": {
         "stage_layout": "Stage layout",

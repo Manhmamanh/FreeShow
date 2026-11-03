@@ -101,7 +101,10 @@
             <div class="unsaved" />
         {/if}
         <!-- logo -->
-        <h1 style="align-self: center;width: 100%;padding: 0px 10px;text-align: center;font-size: 1.8em;">FreeShow</h1>
+        <h1 class="brand" title="Haidangshow · based on FreeShow (GPL-3.0)">
+            <img src="./brand/haidangshow-logo.svg" alt="" draggable={false} />
+            <span>Haidangshow</span>
+        </h1>
         <!-- <div class="logo">
             <img style="height: 35px;" src="./import-logos/freeshow.webp" alt="FreeShow-logo" draggable={false} />
             <h1 style="color: var(--text);font-size: 1.7em;">FreeShow</h1>
@@ -289,5 +292,27 @@
     }
     .user.isSameArea {
         box-shadow: 0 0 0 2px var(--secondary);
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 0 10px;
+        font-size: 1.55em;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+    }
+    .brand img {
+        height: 1.45em;
+        width: 1.45em;
+    }
+    .brand span {
+        background: linear-gradient(90deg, var(--text) 15%, var(--secondary) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
     }
 </style>

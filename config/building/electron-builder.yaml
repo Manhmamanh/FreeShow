@@ -1,6 +1,6 @@
-appId: app.freeshow
-productName: FreeShow
-artifactName: FreeShow-${version}-${arch}.${ext}
+appId: app.haidangshow
+productName: Haidangshow
+artifactName: Haidangshow-${version}-${arch}.${ext}
 
 files:
     - build/electron/**

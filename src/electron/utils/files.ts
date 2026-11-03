@@ -1,6 +1,7 @@
 // ----- FreeShow -----
 // Functions to interact with local files
 
+import { BRAND } from "../../types/Brand"
 import { app, dialog, shell } from "electron"
 import type { ExifData } from "exif"
 import { ExifImage } from "exif"
@@ -356,7 +357,7 @@ export function getDefaultDataFolderRoot() {
     const documentsPath = getMediaFolderPath("documents")
     if (!documentsPath) return appDataPath
 
-    const appFolderName = "FreeShow"
+    const appFolderName = BRAND.dataFolder
     const fullPath = path.join(documentsPath, appFolderName)
 
     try {

@@ -1,11 +1,14 @@
 // import { Notification, app } from "electron"
 import { autoUpdater } from "electron-updater"
 import { isProd } from ".."
+import { BRAND } from "../../types/Brand"
 
 // let notification: Notification | null
 
 export default async function checkForUpdates() {
     if (!isProd) return
+    // Haidangshow has no update server: electron-updater would otherwise install the original FreeShow over it
+    if (BRAND.isFork) return
 
     try {
         await autoUpdater.checkForUpdatesAndNotify()

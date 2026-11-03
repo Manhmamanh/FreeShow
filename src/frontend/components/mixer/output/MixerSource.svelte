@@ -11,6 +11,7 @@
     import { encodeFilePath } from "../../helpers/media"
     import Camera from "../../output/Camera.svelte"
     import Window from "../../output/Window.svelte"
+    import { guestVideo } from "../guestReceiver"
     import { getGuestViewUrl } from "../mixerLive"
 
     export let input: MixerInput
@@ -95,10 +96,15 @@
         <BmdStream screen={{ id: input.sourceId, name: "" }} background outputBackground {mirror} {outputId} />
     {:else if input.type === "screen"}
         <Window id={input.sourceId} class="media" style="width: 100%;height: 100%;" />
-    {:else if input.type === "guest"}
+    {:else if input.type === "guest" && input.guestMode === "webview"}
+        <!-- compatibility mode: the VDO.Ninja page itself (its sound plays from this window) -->
         {#key input.sourceId}
             <webview class="guest" src={getGuestViewUrl(input.sourceId)} use:guestAttach />
         {/key}
+    {:else if input.type === "guest"}
+        <!-- direct WebRTC: a normal video element, so offscreen outputs (NDI/RTMP) capture it; sound via mixerAudio -->
+        <!-- svelte-ignore a11y-media-has-caption -->
+        <video class="guestVideo" use:guestVideo={input.sourceId} autoplay muted playsinline />
     {:else if input.type === "audio"}
         {#if thumbnail}
             <div class="icon"><Icon id="microphone" size={2.5} white /></div>

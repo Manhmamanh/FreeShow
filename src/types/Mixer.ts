@@ -25,6 +25,7 @@ export interface MixerInput {
     muted?: boolean
     audioFollow?: boolean // default true: audible only while on air (program, transition or PiP)
     audioDeviceId?: string // camera/guest: microphone that belongs to this input
+    guestMode?: "direct" | "webview" // guest: direct WebRTC (default) or the VDO.Ninja page in a webview (compatibility)
 
     // replay
     playbackRate?: number // default 1 (replay clips default 0.5)
