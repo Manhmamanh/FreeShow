@@ -941,7 +941,8 @@
         "fx_pick_lut": "Chọn file LUT .cube",
         "fx_intensity": "Cường độ",
         "fx_lut_invalid": "File này không phải LUT 3D .cube hợp lệ.",
-        "fx_lut_hint": "LUT 3D định dạng .cube (Premiere, DaVinci Resolve, Final Cut, LUT log của máy quay)."
+        "fx_lut_hint": "LUT 3D định dạng .cube (Premiere, DaVinci Resolve, Final Cut, LUT log của máy quay).",
+        "rec_meter_hint": "Thời gian ghi và mức âm thanh đang đưa vào file ghi. Có người nói mà vạch không nhảy = file sẽ không có tiếng."
     },
     "stage": {
         "slide": "Slide",

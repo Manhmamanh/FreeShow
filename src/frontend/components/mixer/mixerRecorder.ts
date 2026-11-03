@@ -8,7 +8,8 @@ import { Main } from "../../../types/IPC/Main"
 import type { MixerInput } from "../../../types/Mixer"
 import { requestMain, sendMain } from "../../IPC/main"
 import { cameraManager } from "../../media/cameraManager"
-import { activePopup, activeRecording, alertMessage, outputDisplay, outputs, special } from "../../stores"
+import { activePopup, activeRecording, alertMessage, audioRouting, outputDisplay, outputs, special } from "../../stores"
+import { AudioAnalyser } from "../../audio/audioAnalyser"
 import { newToast } from "../../utils/common"
 import { translateText } from "../../utils/language"
 import { startOutputRecording, stopMediaRecorder } from "../drawer/live/recorder"
@@ -67,6 +68,26 @@ async function openStream(input: MixerInput): Promise<{ stream: MediaStream; rel
 
 export const isProgramRecording = () => !!get(activeRecording)?.isOutput
 
+/** started when REC starts, for the elapsed time on the REC button */
+export const programRecordingStartedAt = writable(0)
+
+// a projector output has no audio route of its own (only NDI/RTMP outputs get one):
+// connect the main mix (mixer sources, microphones, media, playlists) to it while recording
+let tempRoute: { from: string; to: string } | null = null
+function addRecordingAudioRoute(outputId: string) {
+    const to = `network_sub_${outputId}`
+    const connections = get(audioRouting)?.connections || []
+    if (connections.some((c) => c.to === to)) return // the output already has its own audio channel
+    tempRoute = { from: "main", to }
+    audioRouting.update((a) => ({ ...a, connections: [...(a?.connections || []), tempRoute!] }))
+}
+function removeRecordingAudioRoute() {
+    if (!tempRoute) return
+    const route = tempRoute
+    tempRoute = null
+    audioRouting.update((a) => ({ ...a, connections: (a?.connections || []).filter((c) => !(c.from === route.from && c.to === route.to)) }))
+}
+
 function alertUser(key: string) {
     alertMessage.set(translateText(key))
     activePopup.set("alert")
@@ -76,6 +97,9 @@ function alertUser(key: string) {
 export async function toggleProgramRecording() {
     if (isProgramRecording()) {
         await stopMediaRecorder()
+        programRecordingStartedAt.set(0)
+        removeRecordingAudioRoute()
+        AudioAnalyser.recorderActivate()
         return
     }
     // another recording (e.g. a camera/screen recording from the drawer) is running
@@ -88,12 +112,28 @@ export async function toggleProgramRecording() {
     // the encoder needs FFmpeg (asks to download it the first time)
     if (!(await checkFFmpeg())) return
 
+    // cameras added before mic auto-linking get their microphone now (sound for AFV/program)
+    await linkCameraMicrophones()
+
     await startOutputRecording(outputId)
+    if (!isProgramRecording()) return
+    programRecordingStartedAt.set(Date.now())
+    addRecordingAudioRoute(outputId)
+    // (re)start the audio sender now that this output is a target
+    AudioAnalyser.recorderActivate()
+}
+
+/** link the microphone of every camera that has none yet (explicit "no microphone" is kept) */
+export async function linkCameraMicrophones() {
+    for (const input of get(mixer).inputs) {
+        if (input.type === "camera" && input.audioDeviceId === undefined) await withLinkedMic(input)
+    }
 }
 
 /** cameras added before auto-linking: find their microphone now (and remember it) */
 async function withLinkedMic(input: MixerInput): Promise<MixerInput> {
-    if (input.type !== "camera" || input.audioDeviceId) return input
+    // "" = the operator chose "no microphone"
+    if (input.type !== "camera" || input.audioDeviceId !== undefined) return input
     const audioDeviceId = await findLinkedMicrophone(input.name, input.cameraGroup)
     if (!audioDeviceId) return input
     updateInput(input.id, { audioDeviceId })
@@ -316,4 +356,11 @@ mixer.subscribe((state) => {
     isoRecorders.forEach((_r, id) => {
         if (!state.inputs.some((i) => i.id === id)) stopIso([id])
     })
+})
+
+// REC stopped from somewhere else (context menu, API, error): clean up the temporary audio route
+activeRecording.subscribe((rec) => {
+    if (rec?.isOutput) return
+    if (get(programRecordingStartedAt)) programRecordingStartedAt.set(0)
+    if (tempRoute) removeRecordingAudioRoute()
 })

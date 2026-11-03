@@ -20,11 +20,16 @@
     import MixerMonitor from "./MixerMonitor.svelte"
     import MixerPipPanel from "./MixerPipPanel.svelte"
     import MixerRecordPanel from "./MixerRecordPanel.svelte"
-    import { captureReplay, isoRecording, replayBuffers, replayBusy, startIso, stopIso, toggleProgramRecording } from "./mixerRecorder"
+    import MixerRecMeter from "./MixerRecMeter.svelte"
+    import { captureReplay, isoRecording, linkCameraMicrophones, programRecordingStartedAt, replayBuffers, replayBusy, startIso, stopIso, toggleProgramRecording } from "./mixerRecorder"
     import MixerTBar from "./MixerTBar.svelte"
     import MixerTile from "./MixerTile.svelte"
 
-    onMount(startMixerAudio)
+    onMount(() => {
+        startMixerAudio()
+        // cameras added before microphones were linked automatically
+        linkCameraMicrophones()
+    })
 
     $: monitorOutputId = getMonitorOutputId($mixer) || Object.keys($outputs).find((id) => !$outputs[id]?.stageOutput) || ""
     $: monitorOutput = $outputs[monitorOutputId]
@@ -54,6 +59,13 @@
     let now = new Date()
     const clock = setInterval(() => (now = new Date()), 500)
     onDestroy(() => clearInterval(clock))
+    const elapsed = (start: number, current: Date) => {
+        const s = Math.max(0, Math.floor((current.getTime() - start) / 1000))
+        const h = Math.floor(s / 3600)
+        const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0")
+        const ss = String(s % 60).padStart(2, "0")
+        return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
+    }
     $: time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
 
     // ----- transitions -----
@@ -112,7 +124,13 @@
 
         <button class="pill" class:live={streaming} title={translateText("mixer.open_output_settings", $dictionary)} on:click={openOutputSettings}>STREAM</button>
         <button class="pill" class:live={ndiOn} title={translateText("mixer.open_output_settings", $dictionary)} on:click={openOutputSettings}>NDI</button>
-        <button class="pill" class:live={recording} on:click={toggleRecord}>● REC</button>
+        <button class="pill rec" class:live={recording} on:click={toggleRecord} title={translateText("mixer.rec_meter_hint", $dictionary)}>
+            ● REC
+            {#if recording && $programRecordingStartedAt}
+                <span class="elapsed">{elapsed($programRecordingStartedAt, now)}</span>
+                <MixerRecMeter nodeId="network_sub_{monitorOutputId}" />
+            {/if}
+        </button>
         <button class="pill" class:live={isoActive} disabled={!$mixer.inputs.some((i) => i.type === "camera")} on:click={() => (isoActive ? stopIso() : startIso())}>● ISO</button>
         <div class="clock">{time}</div>
     </header>
@@ -663,5 +681,15 @@
         .middle {
             grid-template-columns: 1fr;
         }
+    }
+
+    .pill.rec {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .elapsed {
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-variant-numeric: tabular-nums;
     }
 </style>

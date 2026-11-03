@@ -2,7 +2,7 @@ import { get } from "svelte/store"
 import { AUDIO } from "../../types/Channels"
 import { keysToID } from "../components/helpers/array"
 import { getFirstActiveOutput } from "../components/helpers/output"
-import { audioRouting, currentWindow, disabledServers, outputs, serverData, special } from "../stores"
+import { activeRecording, audioRouting, currentWindow, disabledServers, outputs, serverData, special } from "../stores"
 import { send } from "../utils/request"
 
 export class AudioSender {
@@ -263,6 +263,10 @@ export class AudioSender {
             const outputId = this.getOutputShowId()
             if (outputId) targets.add(outputId)
         }
+
+        // Haidangshow fix: an output that is only recorded (no NDI/RTMP) got no audio at all
+        const recording = get(activeRecording)
+        if (recording?.isOutput && recording.outputId) targets.add(recording.outputId)
 
         return targets
     }

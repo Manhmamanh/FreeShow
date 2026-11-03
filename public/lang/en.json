@@ -1442,7 +1442,8 @@
         "fx_pick_lut": "Choose .cube LUT",
         "fx_intensity": "Intensity",
         "fx_lut_invalid": "This file is not a valid 3D .cube LUT.",
-        "fx_lut_hint": "3D LUTs in .cube format (Premiere, DaVinci Resolve, Final Cut, camera log LUTs)."
+        "fx_lut_hint": "3D LUTs in .cube format (Premiere, DaVinci Resolve, Final Cut, camera log LUTs).",
+        "rec_meter_hint": "Recording time and the sound level sent to the recording. No movement while people speak = no sound in the file."
     },
     "stage": {
         "stage_layout": "Stage layout",

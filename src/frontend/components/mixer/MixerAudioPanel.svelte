@@ -54,7 +54,7 @@
                     <select
                         value={input.audioDeviceId || ""}
                         on:change={(e) => {
-                            updateInput(input.id, { audioDeviceId: e.currentTarget.value || undefined })
+                            updateInput(input.id, { audioDeviceId: e.currentTarget.value })
                             micMenu = ""
                         }}
                     >
