@@ -906,7 +906,8 @@
         "link_copied": "Đã copy link",
         "new_link_hint": "Tạo link mới (link cũ hết tác dụng)",
         "no_guests": "Chưa có khách mời.",
-        "guest_privacy": "Khách kết nối qua VDO.Ninja (miễn phí, mã nguồn mở, WebRTC ngang hàng). Cần có Internet. Ai có link đều gửi được hình vào nguồn này, nên chỉ gửi link cho đúng khách."
+        "guest_privacy": "Khách kết nối qua VDO.Ninja (miễn phí, mã nguồn mở, WebRTC ngang hàng). Cần có Internet. Ai có link đều gửi được hình vào nguồn này, nên chỉ gửi link cho đúng khách.",
+        "record": "Ghi hình"
     },
     "stage": {
         "slide": "Slide",

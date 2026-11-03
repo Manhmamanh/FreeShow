@@ -61,7 +61,8 @@ export interface MixerState {
     previewId: string | null
     programId: string | null
     outputId: string // "" = all active outputs
-    transition: MixerTransition
+    transition: MixerTransition // transition 1 (AUTO, Space, T-bar)
+    transitions: MixerTransition[] // the 4 transition buttons (vMix style), [0] mirrors `transition`
     inputs: MixerInput[]
     pips: MixerPip[]
     replaySeconds: number // length of an instant replay clip

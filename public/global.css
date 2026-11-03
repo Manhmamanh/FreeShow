@@ -34,9 +34,9 @@
     --primary-darkest: #12121c;
     --text: #f0f0ff;
     --textInvert: #131313;
-    --secondary: #f0008c;
-    --secondary-opacity: rgba(240, 0, 140, 0.5);
-    --secondary-text: #f0f0ff;
+    --secondary: #2f80ed;
+    --secondary-opacity: rgba(47, 128, 237, 0.5);
+    --secondary-text: #ffffff;
     --transparent: #232530;
 
     --accent: #90caf9;

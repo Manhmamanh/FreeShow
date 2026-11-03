@@ -1407,7 +1407,8 @@
         "link_copied": "Link copied",
         "new_link_hint": "New link (the old link stops working)",
         "no_guests": "No guests yet.",
-        "guest_privacy": "Guests connect over VDO.Ninja (free, open source, peer-to-peer WebRTC). Internet is needed. Anyone with the link can send video to this input, so share it only with the guest."
+        "guest_privacy": "Guests connect over VDO.Ninja (free, open source, peer-to-peer WebRTC). Internet is needed. Anyone with the link can send video to this input, so share it only with the guest.",
+        "record": "Record"
     },
     "stage": {
         "stage_layout": "Stage layout",

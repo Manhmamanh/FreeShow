@@ -37,25 +37,25 @@
         <Top {isWindows} />
     {/if}
     <div class="row">
-        <Resizeable id="leftPanel">
-            <div class="left">
-                {#if page === "show"}
-                    {#key $activeProfile}
-                        <Projects />
-                    {/key}
-                {:else if page === "edit"}
-                    <Navigation />
-                {:else if page === "stage"}
-                    <StageLayouts />
-                {:else if page === "mixer"}
-                    <LazyLoad component={() => import("./components/mixer/MixerInputs.svelte")} show={page === "mixer"} />
-                {:else if page === "draw"}
-                    <DrawTabs />
-                {:else if page === "settings"}
-                    <SettingsTabs />
-                {/if}
-            </div>
-        </Resizeable>
+        {#if page !== "mixer"}
+            <Resizeable id="leftPanel">
+                <div class="left">
+                    {#if page === "show"}
+                        {#key $activeProfile}
+                            <Projects />
+                        {/key}
+                    {:else if page === "edit"}
+                        <Navigation />
+                    {:else if page === "stage"}
+                        <StageLayouts />
+                    {:else if page === "draw"}
+                        <DrawTabs />
+                    {:else if page === "settings"}
+                        <SettingsTabs />
+                    {/if}
+                </div>
+            </Resizeable>
+        {/if}
 
         <div class="center">
             {#if page === "show"}

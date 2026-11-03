@@ -190,6 +190,15 @@ export function updateSettings(data: any) {
             })
         }
 
+        // blue brand: replace the built-in pink "default"/"light" themes if the user did not change their color
+        themes.update((a) => {
+            ;["default", "light"].forEach((id) => {
+                if (a[id]?.colors?.secondary?.toLowerCase() === "#f0008c") a[id] = clone(defaultThemes[id])
+            })
+            return a
+        })
+        currentTheme = get(themes)[data.theme] || currentTheme
+
         updateThemeValues(currentTheme)
     }
 

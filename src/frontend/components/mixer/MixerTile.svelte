@@ -4,136 +4,266 @@
 </script>
 
 <script lang="ts">
-    // One multiview cell: live thumbnail of an input + tally (red = program, green = preview, orange = PiP).
+    // vMix-style input tile: title bar (number, name, close), live thumbnail, and a button row
+    // [1 2 3 4] = put in PiP/overlay slot, Quick Play, Cut, Loop, Audio.
     import { createEventDispatcher } from "svelte"
-    import type { MixerInput } from "../../../types/Mixer"
+    import type { MixerInput, MixerPip } from "../../../types/Mixer"
     import Icon from "../helpers/Icon.svelte"
+    import { assignPipSlot, cut, PIP_SLOTS, quickPlay, removeInput, renameInput, setPreview, updateInput } from "./mixer"
     import MixerSource from "./output/MixerSource.svelte"
 
     export let input: MixerInput
     export let index: number
     export let isPreview = false
     export let isProgram = false
-    export let isPip = false
+    export let pips: MixerPip[] = []
     export let isRecording = false
     export let live = true
 
     const dispatch = createEventDispatcher()
+
+    $: slotState = Array.from({ length: PIP_SLOTS }, (_, i) => (pips[i]?.inputId === input.id ? (pips[i].enabled ? "on" : "set") : ""))
+    $: inPip = slotState.includes("on")
+    $: hasSound = input.type === "video" || input.type === "audio" || input.type === "guest" || input.type === "replay" || !!input.audioDeviceId
+
+    let editing = false
+    function focusSelect(node: HTMLInputElement) {
+        node.focus()
+        node.select()
+    }
+    function finishRename(value: string) {
+        renameInput(input.id, value)
+        editing = false
+    }
+
+    function cutThis() {
+        setPreview(input.id)
+        cut()
+    }
 </script>
 
-<button class="tile" class:preview={isPreview} class:program={isProgram} class:pip={isPip && !isProgram} on:click={() => dispatch("preview")} on:dblclick={() => dispatch("play")} title={input.name}>
-    <div class="media">
+<div class="tile" class:preview={isPreview} class:program={isProgram} class:pip={inPip && !isProgram && !isPreview}>
+    <div class="titlebar">
+        <span class="number">{index + 1}</span>
+        {#if editing}
+            <input class="rename" value={input.name} use:focusSelect on:blur={(e) => finishRename(e.currentTarget.value)} on:keydown={(e) => (e.key === "Enter" ? e.currentTarget.blur() : e.key === "Escape" ? (editing = false) : null)} />
+        {:else}
+            <span class="name" title={input.name} on:dblclick={() => (editing = true)}>{input.name}</span>
+        {/if}
+        {#if isRecording}<span class="rec">REC</span>{/if}
+        <button class="close" title="✕" disabled={isProgram} on:click={() => removeInput(input.id)}>✕</button>
+    </div>
+
+    <button class="media" on:click={() => setPreview(input.id)} on:dblclick={() => quickPlay(input.id, true)} title={input.name}>
         {#if live && input.type !== "audio"}
             <MixerSource {input} mirror thumbnail />
         {:else}
-            <Icon id={inputIcon(input.type)} size={2.5} white />
+            <Icon id={inputIcon(input.type)} size={2.4} white />
         {/if}
-        {#if isRecording}<span class="rec">● REC</span>{/if}
+        <span class="type"><Icon id={inputIcon(input.type)} size={0.75} white /></span>
         {#if input.type === "replay"}<span class="speed">{input.playbackRate || 1}×</span>{/if}
-    </div>
+    </button>
 
-    <div class="label">
-        <span class="number">{index + 1}</span>
-        <Icon id={inputIcon(input.type)} size={0.9} white />
-        <span class="name">{input.name}</span>
-        {#if input.muted}<Icon id="volume_off" size={0.8} white />{/if}
-        {#if isProgram}<span class="badge red">PGM</span>{:else if isPreview}<span class="badge green">PVW</span>{/if}
-        {#if isPip}<span class="badge orange">PiP</span>{/if}
+    <div class="controls">
+        <div class="slots">
+            {#each slotState as state, i}
+                <button class="slot {state}" title="PiP {i + 1}" on:click={() => assignPipSlot(input.id, i)}>{i + 1}</button>
+            {/each}
+        </div>
+        <button class="ctl go" title="Quick Play" on:click={() => quickPlay(input.id, true)}>GO</button>
+        <button class="ctl" title="Cut" on:click={cutThis}>CUT</button>
+        {#if input.type === "video"}
+            <button class="ctl" class:active={input.loop !== false} title="Loop" on:click={() => updateInput(input.id, { loop: input.loop === false })}>LOOP</button>
+        {/if}
+        {#if hasSound}
+            <button class="ctl audio" class:muted={input.muted} title="Audio" on:click={() => updateInput(input.id, { muted: !input.muted })} on:contextmenu|preventDefault={() => dispatch("audio")}>
+                <Icon id={input.muted ? "volume_off" : "volume"} size={0.8} white />
+            </button>
+        {/if}
     </div>
-</button>
+</div>
 
 <style>
     .tile {
-        position: relative;
         display: flex;
         flex-direction: column;
-        padding: 0;
-        border: 3px solid var(--primary-lighter);
-        border-radius: 6px;
-        background-color: var(--primary-darkest);
-        color: var(--text);
-        cursor: pointer;
+        border: 1px solid var(--mx-border);
+        border-radius: 4px;
+        background-color: var(--mx-panel);
         overflow: hidden;
-        font-family: inherit;
+        min-width: 0;
     }
-    .tile:hover {
-        border-color: var(--secondary-opacity);
+
+    .titlebar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 22px;
+        padding: 0 4px 0 0;
+        background: linear-gradient(#244a86, #1b3a6b);
+        color: white;
+        font-size: 0.78em;
+        font-weight: 600;
     }
-    .tile.pip {
-        border-color: #f39c12;
+    .tile.preview .titlebar {
+        background: linear-gradient(#1fae5c, #178a48);
     }
-    .tile.preview {
-        border-color: #23b14d;
+    .tile.program .titlebar {
+        background: linear-gradient(#e5293f, #b81d30);
     }
-    .tile.program {
-        border-color: #e5243b;
+    .tile.pip .titlebar {
+        background: linear-gradient(#f5a623, #c98510);
+    }
+    .number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 100%;
+        background: rgb(0 0 0 / 0.25);
+        font-weight: 800;
+    }
+    .name {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        cursor: text;
+    }
+    .rename {
+        flex: 1;
+        min-width: 0;
+        height: 18px;
+        border: none;
+        border-radius: 2px;
+        padding: 0 4px;
+        font: inherit;
+    }
+    .rec {
+        padding: 0 4px;
+        border-radius: 2px;
+        background-color: #e5293f;
+        font-size: 0.85em;
+        animation: blink 1.2s infinite;
+    }
+    @keyframes blink {
+        50% {
+            opacity: 0.4;
+        }
+    }
+    .close {
+        border: none;
+        background: none;
+        color: white;
+        opacity: 0.6;
+        cursor: pointer;
+        font-size: 0.95em;
+        padding: 0 3px;
+    }
+    .close:hover:not(:disabled) {
+        opacity: 1;
+        color: #ff8b98;
+    }
+    .close:disabled {
+        opacity: 0.2;
+        cursor: default;
     }
 
     .media {
         position: relative;
-        aspect-ratio: 16/9;
-        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: black;
+        aspect-ratio: 16/9;
+        width: 100%;
+        padding: 0;
+        border: none;
+        background-color: #000;
         overflow: hidden;
+        cursor: pointer;
+    }
+    .media :global(.source) {
         pointer-events: none;
     }
-
-    .rec,
+    .type,
     .speed {
         position: absolute;
-        top: 4px;
-        padding: 1px 6px;
-        border-radius: 4px;
-        font-size: 0.7em;
-        font-weight: bold;
+        bottom: 3px;
+        padding: 1px 4px;
+        border-radius: 3px;
+        background: rgb(0 0 0 / 0.55);
         color: white;
-        z-index: 2;
-    }
-    .rec {
-        left: 4px;
-        background-color: #e5243b;
-    }
-    .speed {
-        right: 4px;
-        background-color: rgb(0 0 0 / 0.6);
-    }
-
-    .label {
+        font-size: 0.7em;
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 4px 6px;
-        font-size: 0.85em;
-        background-color: var(--primary-darker);
     }
-    .number {
+    .type {
+        left: 3px;
+    }
+    .speed {
+        right: 3px;
         font-weight: bold;
-        opacity: 0.7;
     }
-    .name {
-        flex: 1;
-        text-align: start;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+
+    .controls {
+        display: flex;
+        gap: 2px;
+        padding: 3px;
+        background-color: var(--mx-panel-2);
     }
-    .badge {
-        padding: 0 6px;
-        border-radius: 4px;
-        font-size: 0.8em;
-        font-weight: bold;
+    .slots {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2px;
+        margin-inline-end: 2px;
+    }
+    .controls button {
+        height: 20px;
+        border: 1px solid var(--mx-border);
+        border-radius: 2px;
+        background: linear-gradient(#25314a, #1a2335);
+        color: var(--mx-muted);
+        font-family: inherit;
+        font-size: 0.66em;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .controls button:hover {
         color: white;
+        border-color: var(--mx-accent);
     }
-    .badge.red {
-        background-color: #e5243b;
+    .slot {
+        width: 15px;
+        padding: 0;
     }
-    .badge.green {
-        background-color: #23b14d;
+    .slot.set {
+        color: #f5a623;
+        border-color: #a56f12;
     }
-    .badge.orange {
-        background-color: #f39c12;
+    .slot.on {
+        background: linear-gradient(#f5a623, #c98510) !important;
+        color: #1b1300 !important;
+    }
+    .ctl {
+        flex: 1;
+        padding: 0 3px;
+        min-width: 0;
+    }
+    .ctl.go {
+        color: #8fc2ff;
+    }
+    .ctl.active {
+        color: white;
+        background: linear-gradient(var(--mx-accent), #1b5fd1) !important;
+    }
+    .ctl.audio {
+        flex: 0 0 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(#1fae5c, #178a48) !important;
+    }
+    .ctl.audio.muted {
+        background: linear-gradient(#5a6475, #3c4454) !important;
     }
 </style>

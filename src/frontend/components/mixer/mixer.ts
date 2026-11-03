@@ -16,10 +16,17 @@ const STORAGE_KEY = "freeshow_mixer_v2"
 export const MAX_SHORTCUT_INPUTS = 9
 
 export const DEFAULT_TRANSITION: MixerTransition = { type: "fade", duration: 600, easing: "sine" }
+export const DEFAULT_TRANSITIONS: MixerTransition[] = [
+    { type: "fade", duration: 600, easing: "sine" },
+    { type: "wipe", duration: 800, easing: "sine" },
+    { type: "push", duration: 800, easing: "cubic" },
+    { type: "scale", duration: 600, easing: "sine" }
+]
+export const PIP_SLOTS = 4
 const BLACK: MixerInput = { id: MIXER_BLACK_ID, name: "Black", type: "image", sourceId: "" }
 
 function defaultState(): MixerState {
-    return { previewId: null, programId: null, outputId: "", transition: { ...DEFAULT_TRANSITION }, inputs: [], pips: [], replaySeconds: 8, replayRate: 0.5 }
+    return { previewId: null, programId: null, outputId: "", transition: { ...DEFAULT_TRANSITION }, transitions: DEFAULT_TRANSITIONS.map((t) => ({ ...t })), inputs: [], pips: [], replaySeconds: 8, replayRate: 0.5 }
 }
 
 function loadState(): MixerState {
@@ -30,6 +37,8 @@ function loadState(): MixerState {
         const state: MixerState = { ...defaultState(), ...parsed }
         if (!Array.isArray(state.inputs)) state.inputs = []
         if (!Array.isArray(state.pips)) state.pips = []
+        if (!Array.isArray(state.transitions) || state.transitions.length < 4) state.transitions = DEFAULT_TRANSITIONS.map((t, i) => ({ ...(state.transitions?.[i] || t) }))
+        state.transitions[0] = { ...state.transition }
         // replay clips are temporary files of the last session
         state.inputs = state.inputs.filter((i) => i.type !== "replay")
         state.pips = state.pips.filter((p) => state.inputs.some((i) => i.id === p.inputId))
@@ -203,8 +212,16 @@ export function setTargetOutput(outputId: string) {
 }
 
 export function setTransition(transition: Partial<MixerTransition>) {
+    setTransitionPreset(0, transition)
+}
+
+/** one of the 4 transition buttons; button 1 is also used by AUTO/Space and the T-bar */
+export function setTransitionPreset(index: number, transition: Partial<MixerTransition>) {
     mixer.update((a) => {
-        a.transition = { ...a.transition, ...transition }
+        const list = [...(a.transitions || DEFAULT_TRANSITIONS)]
+        list[index] = { ...(list[index] || DEFAULT_TRANSITION), ...transition }
+        a.transitions = list
+        a.transition = { ...list[0] }
         return a
     })
     refreshOutInputsSoon()
@@ -248,9 +265,8 @@ function commit(input: MixerInput | null, swapPreview = true) {
     scheduleReplayReturn(input)
 }
 
-function startAuto(input: MixerInput, swapPreview = true) {
+function startAuto(input: MixerInput, swapPreview = true, transition: MixerTransition = get(mixer).transition) {
     if (get(outLocked)) return
-    const transition = get(mixer).transition
     if (transition.type === "none" || transition.duration <= 0) return commit(input, swapPreview)
 
     // small lead so all windows start the same frame
@@ -269,10 +285,12 @@ export function cut() {
     if (input) commit(input)
 }
 
-export function auto() {
+/** AUTO = transition button 1; other buttons pass their index */
+export function auto(index = 0) {
     if (get(mixerTransitioning)) return
-    const input = getInput(get(mixer).previewId)
-    if (input) startAuto(input)
+    const state = get(mixer)
+    const input = getInput(state.previewId)
+    if (input) startAuto(input, true, state.transitions?.[index] || state.transition)
 }
 
 /** sends an input straight to program (double click / Shift+number), preview is kept */
@@ -427,6 +445,29 @@ export function togglePip(id: string, enabled?: boolean) {
     const pip = get(mixer).pips.find((p) => p.id === id)
     if (!pip) return
     updatePip(id, { enabled: enabled ?? !pip.enabled })
+}
+
+/** vMix style overlay channels: PiP slot 1-4 = pips[0-3] */
+export function togglePipSlot(slot: number) {
+    const pip = get(mixer).pips[slot]
+    if (pip) togglePip(pip.id)
+}
+
+/** input button "1-4": put this input in PiP slot n (press again to take it off) */
+export function assignPipSlot(inputId: string, slot: number) {
+    const presets: PipPreset[] = ["br", "bl", "tr", "tl"]
+    const state = get(mixer)
+    const pip = state.pips[slot]
+    if (pip) {
+        if (pip.inputId === inputId) togglePip(pip.id)
+        else updatePip(pip.id, { inputId, enabled: true })
+        return
+    }
+    // create the missing slots (only the requested one goes on air)
+    for (let i = state.pips.length; i <= slot; i++) {
+        const id = addPip(inputId, presets[i % presets.length])
+        if (i === slot) updatePip(id, { enabled: true })
+    }
 }
 
 export function removePip(id: string) {

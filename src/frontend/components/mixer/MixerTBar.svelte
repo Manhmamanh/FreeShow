@@ -1,5 +1,5 @@
 <script lang="ts">
-    // Manual transition lever (vMix T-bar). Drag down/up: preview fades into program; a full move takes it.
+    // Manual transition lever (vMix T-bar), horizontal. Drag: preview fades into program; a full move takes it.
     import { outLocked } from "../../stores"
     import { mixerTransitioning, tbarEnd, tbarMove, tbarPosition, tbarStart } from "./mixer"
 
@@ -10,7 +10,7 @@
 
     function positionFromEvent(e: PointerEvent) {
         const rect = track.getBoundingClientRect()
-        return Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height))
+        return Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
     }
 
     function down(e: PointerEvent) {
@@ -21,8 +21,7 @@
         tbarMove(positionFromEvent(e))
     }
     function move(e: PointerEvent) {
-        if (!dragging) return
-        tbarMove(positionFromEvent(e))
+        if (dragging) tbarMove(positionFromEvent(e))
     }
     function up(e: PointerEvent) {
         if (!dragging) return
@@ -32,61 +31,62 @@
     }
 </script>
 
-<div class="tbar" class:disabled={disabled || $outLocked}>
-    <span class="label">T-BAR</span>
+<div class="tbar" class:disabled={disabled || $outLocked} title="T-Bar">
     <div class="track" bind:this={track} on:pointerdown={down} on:pointermove={move} on:pointerup={up} on:pointercancel={up}>
-        <div class="fill" style="height: {$tbarPosition * 100}%;" />
-        <div class="handle" class:dragging style="top: {$tbarPosition * 100}%;" />
+        <div class="groove" />
+        <div class="fill" style="width: {$tbarPosition * 100}%;" />
+        <div class="handle" class:dragging style="left: {$tbarPosition * 100}%;" />
     </div>
 </div>
 
 <style>
     .tbar {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
+        width: 100%;
+        padding: 8px 10px;
         user-select: none;
     }
     .tbar.disabled {
         opacity: 0.4;
         pointer-events: none;
     }
-    .label {
-        font-size: 0.7em;
-        font-weight: bold;
-        opacity: 0.7;
-    }
 
     .track {
         position: relative;
-        width: 34px;
-        height: 150px;
-        border-radius: 6px;
-        background-color: var(--primary-darkest);
-        border: 1px solid var(--primary-lighter);
-        cursor: ns-resize;
+        height: 22px;
+        cursor: ew-resize;
         touch-action: none;
+    }
+    .groove {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 6px;
+        margin-top: -3px;
+        border-radius: 3px;
+        background: #070b14;
+        box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.8);
     }
     .fill {
         position: absolute;
+        top: 50%;
         left: 0;
-        top: 0;
-        width: 100%;
-        border-radius: 6px;
-        background: linear-gradient(#e5243b55, #e5243b22);
+        height: 6px;
+        margin-top: -3px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, var(--mx-accent, #2f80ed), var(--mx-accent-2, #00b4ff));
     }
     .handle {
         position: absolute;
-        left: -6px;
-        width: calc(100% + 12px);
-        height: 16px;
-        margin-top: -8px;
-        border-radius: 4px;
-        background: linear-gradient(#f0f0f0, #9a9a9a);
-        box-shadow: 0 2px 6px rgb(0 0 0 / 0.5);
+        top: 0;
+        width: 16px;
+        height: 22px;
+        margin-left: -8px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #cfd8e6, #ffffff 45%, #9aa8bd);
+        box-shadow: 0 2px 6px rgb(0 0 0 / 0.6);
     }
     .handle.dragging {
-        background: linear-gradient(#ffffff, #c41d31);
+        background: linear-gradient(90deg, #8fc2ff, #ffffff 45%, #2f80ed);
     }
 </style>
