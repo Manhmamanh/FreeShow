@@ -311,7 +311,7 @@ export class RtmpStreamer {
                 const now = Date.now()
 
                 // real audio is flowing (or the encoder just started and audio may still come)
-                if (now - streamer.lastAudioTime < 300 || (!streamer.hasReceivedFirstAudio && now - streamer.encoderStartedAt < 1000)) {
+                if (now - streamer.lastAudioTime < 300 || (!streamer.hasReceivedFirstAudio && now - streamer.encoderStartedAt < 300)) {
                     clock = now
                     return
                 }
