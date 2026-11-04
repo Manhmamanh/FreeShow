@@ -20,6 +20,24 @@
     let lutSize = 0
     let loadedLutPath = ""
     let frame = 0
+    // Haidangshow perf: only upload + draw when there is a new picture or new settings
+    // (a 120 Hz screen would otherwise redraw a 30 fps camera 4 times per frame)
+    let dirty = true
+    $: (fx, (dirty = true))
+    let watched: HTMLVideoElement | null = null
+    let lastMedia: Element | null = null
+    let lastW = 0
+    let lastH = 0
+    function watchVideo(video: HTMLVideoElement) {
+        if (watched === video) return
+        watched = video
+        const onFrame = () => {
+            if (watched !== video) return
+            dirty = true
+            video.requestVideoFrameCallback(onFrame)
+        }
+        video.requestVideoFrameCallback(onFrame)
+    }
     const uniforms: Record<string, WebGLUniformLocation | null> = {}
 
     const VERTEX = `#version 300 es
@@ -147,6 +165,7 @@ void main() {
         for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T, gl.TEXTURE_WRAP_R]) gl.texParameteri(gl.TEXTURE_3D, k, gl.CLAMP_TO_EDGE)
         gl.activeTexture(gl.TEXTURE0)
         lutSize = lut.size
+        dirty = true
     }
     $: if (gl) updateLut(hasLut(fx) ? fx.lut!.path : "")
 
@@ -162,12 +181,19 @@ void main() {
         const media = findMedia()
         if (!media) return
 
+        if (media !== lastMedia) {
+            lastMedia = media
+            dirty = true
+        }
+
         let w = 0
         let h = 0
         if (media instanceof HTMLVideoElement) {
             if (media.readyState < 2) return
             w = media.videoWidth
             h = media.videoHeight
+            if ("requestVideoFrameCallback" in media) watchVideo(media)
+            else dirty = true
         } else if (media instanceof HTMLImageElement) {
             if (!media.complete) return
             w = media.naturalWidth
@@ -177,6 +203,14 @@ void main() {
             h = media.height
         }
         if (!w || !h) return
+        if (w !== lastW || h !== lastH) {
+            lastW = w
+            lastH = h
+            dirty = true
+        }
+        // canvases (NDI/OMT streams) change without events: always redraw them
+        if (!dirty && !(media instanceof HTMLCanvasElement)) return
+        dirty = false
         if (canvas.width !== w || canvas.height !== h) {
             canvas.width = w
             canvas.height = h
@@ -189,6 +223,7 @@ void main() {
         try {
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, media)
         } catch {
+            dirty = true
             return // tainted / not ready
         }
 
@@ -230,6 +265,7 @@ void main() {
 
     onDestroy(() => {
         cancelAnimationFrame(frame)
+        watched = null
         gl?.getExtension("WEBGL_lose_context")?.loseContext()
         gl = null
     })

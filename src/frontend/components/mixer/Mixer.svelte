@@ -85,7 +85,30 @@
     }
     let dock: Dock = ""
     let addOpen = false
-    let liveThumbnails = true
+    // live thumbnails: remembered, and paused while the window is hidden/minimised (saves CPU/GPU)
+    let liveThumbnails = readLiveSetting()
+    function readLiveSetting() {
+        try {
+            return localStorage.getItem("haidangshow_mixer_live_thumbs") !== "0"
+        } catch {
+            return true
+        }
+    }
+    function saveLiveSetting(live: boolean) {
+        try {
+            localStorage.setItem("haidangshow_mixer_live_thumbs", live ? "1" : "0")
+        } catch {
+            // ignore
+        }
+    }
+    $: saveLiveSetting(liveThumbnails)
+    let windowVisible = !document.hidden
+    const onVisibility = () => (windowVisible = !document.hidden)
+    onMount(() => {
+        document.addEventListener("visibilitychange", onVisibility)
+        return () => document.removeEventListener("visibilitychange", onVisibility)
+    })
+    $: thumbnailsLive = liveThumbnails && windowVisible
     const toggleDock = (d: Dock) => (dock = dock === d ? "" : d)
 </script>
 
@@ -202,7 +225,7 @@
         <div class="inputs">
             <div class="grid">
                 {#each $mixer.inputs as input, index (input.id)}
-                    <MixerTile {input} {index} live={liveThumbnails} isPreview={$mixer.previewId === input.id} isProgram={$mixer.programId === input.id} pips={$mixer.pips} isRecording={!!$isoRecording[input.id]} on:fx={() => openFx(input.id)} />
+                    <MixerTile {input} {index} live={thumbnailsLive} isPreview={$mixer.previewId === input.id} isProgram={$mixer.programId === input.id} pips={$mixer.pips} isRecording={!!$isoRecording[input.id]} on:fx={() => openFx(input.id)} />
                 {:else}
                     <button class="emptyAdd" on:click|stopPropagation={() => (addOpen = true)}>
                         <Icon id="add" size={2} white />

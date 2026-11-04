@@ -9,8 +9,9 @@
     let peak = 0
     let frame = 0
 
+    // 20 updates per second is plenty for a meter (requestAnimationFrame ran at the screen rate, up to 120 Hz)
     function tick() {
-        frame = requestAnimationFrame(tick)
+        if (document.hidden) return
         const data = AudioInputCapture.getInstance().getVisualizerData(nodeId)
         const dbs = data?.channels?.length ? data.channels.map((c) => c.db) : typeof data?.db === "number" ? [data.db] : [-60]
         const db = Math.max(...dbs)
@@ -19,8 +20,8 @@
         peak = Math.max(level, peak - 0.005)
     }
 
-    onMount(() => (frame = requestAnimationFrame(tick)))
-    onDestroy(() => cancelAnimationFrame(frame))
+    onMount(() => (frame = window.setInterval(tick, 50)))
+    onDestroy(() => clearInterval(frame))
 </script>
 
 <span class="meter" title="{Math.round(level * 60 - 60)} dB">

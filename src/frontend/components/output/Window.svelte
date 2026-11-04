@@ -1,3 +1,27 @@
+<script context="module" lang="ts">
+    const captures = new Map<string, { stream: Promise<MediaStream>; refs: number }>()
+
+    function acquireCapture(id: string, constraints: any): Promise<MediaStream> {
+        let entry = captures.get(id)
+        if (!entry) {
+            entry = { stream: navigator.mediaDevices.getUserMedia(constraints), refs: 0 }
+            captures.set(id, entry)
+            entry.stream.catch(() => captures.delete(id))
+        }
+        entry.refs++
+        return entry.stream
+    }
+
+    function releaseCapture(id: string) {
+        const entry = captures.get(id)
+        if (!entry) return
+        entry.refs--
+        if (entry.refs > 0) return
+        captures.delete(id)
+        entry.stream.then((stream) => stream.getTracks().forEach((track) => track.stop())).catch(() => null)
+    }
+</script>
+
 <script lang="ts">
     import { createEventDispatcher, onDestroy, onMount } from "svelte"
 
@@ -16,23 +40,24 @@
                 maxWidth: 1920,
                 maxHeight: 1080,
                 // maxAspectRatio: 16/9,
-                maxFrameRate: 60
+                maxFrameRate: 30 // Haidangshow: 30 is enough for screens and halves the capture cost
             }
         }
     }
 
+    // Haidangshow: one capture per screen/window in this window, shared by every <Window> showing it
+    // (the mixer shows the same screen in its tile, preview and program: 1 capture instead of 3+).
     let currentStream: MediaStream | null = null
     let destroyed = false
     onDestroy(() => {
         destroyed = true
-        currentStream?.getTracks().forEach((track) => track.stop())
+        if (currentStream) releaseCapture(id)
     })
 
     onMount(() => {
-        navigator.mediaDevices
-            .getUserMedia(constraints)
+        acquireCapture(id, constraints)
             .then((stream) => {
-                if (destroyed || !videoElem) return stream.getTracks().forEach((track) => track.stop())
+                if (destroyed || !videoElem) return releaseCapture(id)
 
                 currentStream = stream
                 videoElem.srcObject = stream
@@ -46,7 +71,6 @@
     let dispatch = createEventDispatcher()
     function loaded() {
         // WIP not working!!!
-        console.log("window loaded")
         if (!videoElem) return
 
         videoElem.play()

@@ -23,12 +23,26 @@
     /** guest audio only (0-1.5); the guest plays its own sound in the output window */
     export let gain = 0
     export let thumbnail = false
+    /** Haidangshow perf: show a still frame of video files (no decoding) while the input is not in use */
+    export let still = false
 
     $: src = input.type === "video" || input.type === "replay" || input.type === "image" ? encodeFilePath(input.sourceId) : ""
     $: rate = input.playbackRate || 1
 
     let video: HTMLVideoElement | null = null
     $: if (video) video.playbackRate = rate
+    $: if (video) applyStill(still)
+    function onMetadata() {
+        if (!video) return
+        video.playbackRate = rate
+        // seek a little so the still thumbnail shows a picture instead of black
+        if (still && video.currentTime === 0) video.currentTime = Math.min(1, (video.duration || 1) / 10)
+    }
+    function applyStill(isStill: boolean) {
+        if (!video) return
+        if (isStill) video.pause()
+        else video.play().catch(() => null)
+    }
 
     // ----- picture filters -----
     let sourceEl: HTMLDivElement | null = null
@@ -90,7 +104,7 @@
     {:else if input.type === "video" || input.type === "replay"}
         {#key src}
             <!-- svelte-ignore a11y-media-has-caption -->
-            <video bind:this={video} {src} autoplay muted loop={input.type === "video" && input.loop !== false} playsinline on:loadedmetadata={() => video && (video.playbackRate = rate)} />
+            <video bind:this={video} {src} autoplay={!still} preload={still ? "metadata" : "auto"} muted loop={input.type === "video" && input.loop !== false} playsinline on:loadedmetadata={onMetadata} />
         {/key}
     {:else if input.type === "image"}
         <img {src} alt={input.name} draggable={false} />

@@ -66,7 +66,7 @@
                 <span>{input.playing ? "▶ PLAYING" : "⏸ STOPPED"}</span>
             </div>
         {:else if live && input.type !== "audio"}
-            <MixerSource {input} mirror thumbnail />
+            <MixerSource {input} mirror thumbnail still={!isPreview && !isProgram && !inPip} />
         {:else}
             <Icon id={inputIcon(input.type)} size={2.4} white />
         {/if}

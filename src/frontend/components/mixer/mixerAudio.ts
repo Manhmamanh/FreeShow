@@ -269,8 +269,10 @@ function createMeter(stream: MediaStream) {
     }
 }
 
+let lastLevels = ""
 function updateMeters() {
-    if (!sources.size) return
+    // nothing to show: skip the work (window hidden, or no input with sound)
+    if (!sources.size || document.hidden) return
     const levels: { [id: string]: number } = {}
     sources.forEach((source, inputId) => {
         if (!source.meter) return
@@ -279,6 +281,12 @@ function updateMeters() {
         for (const sample of source.meter.data) peak = Math.max(peak, Math.abs(sample))
         levels[inputId] = peak > 0 ? Math.max(-60, 20 * Math.log10(peak)) : -60
     })
+    // only notify the UI when a level changed (avoids re-rendering every strip 10x per second in silence)
+    const key = Object.entries(levels)
+        .map(([id, db]) => `${id}:${Math.round(db)}`)
+        .join("|")
+    if (key === lastLevels) return
+    lastLevels = key
     mixerLevels.set(levels)
 }
 
